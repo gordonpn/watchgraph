@@ -1,0 +1,17 @@
+[ {
+  "id" : 12,
+  "title" : "Candidate Bridge",
+  "score" : 3.8707406753004543,
+  "occurrence" : 5.519486806451748,
+  "meanRating" : 8.0,
+  "popularity" : 10,
+  "explanation" : "Based on: \"Watched Second\""
+}, {
+  "id" : 20,
+  "title" : "Standalone",
+  "score" : 2.631280413785092,
+  "occurrence" : 2.220962095845742,
+  "meanRating" : 8.5,
+  "popularity" : 600,
+  "explanation" : "Based on: \"Watched Second\""
+} ]

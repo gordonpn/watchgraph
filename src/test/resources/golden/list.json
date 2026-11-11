@@ -1,0 +1,23 @@
+{
+  "data" : [ {
+    "node" : {
+      "id" : 1,
+      "title" : "Watched First",
+      "displayTitle" : "Watched First"
+    },
+    "list_status" : {
+      "score" : 9,
+      "updated_at" : "2025-01-01T12:00:00Z"
+    }
+  }, {
+    "node" : {
+      "id" : 2,
+      "title" : "Watched Second",
+      "displayTitle" : "Watched Second"
+    },
+    "list_status" : {
+      "score" : 7,
+      "updated_at" : "2025-12-01T12:00:00Z"
+    }
+  } ]
+}
