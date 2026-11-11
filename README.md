@@ -78,6 +78,17 @@ The `seasonal` command scans past years of MAL seasonal data, builds a franchise
 - Anime details: 7-day TTL
 - **Fail-safe fallback**: expired cache is returned when the API is unreachable
 
+**List synchronization:** startup and hourly scheduled runs fetch only list statuses whose
+`sync_status.last_synced_at` is absent, null, or at least one hour old. Fresh
+statuses skip both list requests and token refresh; missing authorization leaves
+local snapshots untouched. The explicit `sync` command forces all five statuses
+to refresh, bypassing the user-list response cache and its offline fallback.
+Only complete successful statuses replace their local rows and advance timestamps.
+Missing data, malformed entries, and responses with a `paging.next` link retain
+that status's snapshot and timestamp; pagination is not yet supported by the list
+client. Exceptions abort the run and propagate without marking failed work fresh.
+Cleanup applies only to each successful status, including successful empty lists.
+
 **API retry**: Configurable exponential backoff via `MalRetryInterceptor`. Permanent errors (401, 403, 404) fail fast; transient errors (429, 5xx, network drops) are retried.
 
 ## Prerequisites

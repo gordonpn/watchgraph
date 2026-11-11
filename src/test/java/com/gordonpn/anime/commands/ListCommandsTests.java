@@ -50,6 +50,6 @@ public class ListCommandsTests {
         String result = listCommands.sync();
 
         assertEquals("List sync completed successfully!", result);
-        verify(backgroundFetchService, times(1)).fetchList();
+        verify(backgroundFetchService, times(1)).forceFetchList();
     }
 }
