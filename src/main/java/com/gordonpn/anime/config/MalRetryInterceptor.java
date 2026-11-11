@@ -27,7 +27,10 @@ public class MalRetryInterceptor implements ClientHttpRequestInterceptor {
         long backoffMs = initialBackoffMs;
         boolean infinite = maxAttempts <= 0;
 
-        for (int attempt = 1; infinite || attempt <= maxAttempts; attempt++) {
+        for (long attempt = 1; infinite || attempt <= maxAttempts; attempt++) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new java.io.InterruptedIOException("MAL request interrupted");
+            }
             try {
                 ClientHttpResponse response = execution.execute(request, body);
                 HttpStatusCode status = response.getStatusCode();

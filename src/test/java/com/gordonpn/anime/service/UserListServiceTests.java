@@ -45,7 +45,7 @@ public class UserListServiceTests {
 
     @BeforeEach
     public void setUp() {
-        userListService = new UserListService(objectMapper, apiKeyClient, genericCacheRepository, 3, 50, 1.5);
+        userListService = new UserListService(objectMapper, apiKeyClient, genericCacheRepository);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class UserListServiceTests {
         cached.setCachedAt(LocalDateTime.now().minusDays(3)); // expired
 
         when(genericCacheRepository.findById("userlist:testUser:completed")).thenReturn(Optional.of(cached));
-        when(apiKeyClient.get()).thenThrow(new RuntimeException("API is down"));
+        when(apiKeyClient.get()).thenThrow(new org.springframework.web.client.ResourceAccessException("API is down"));
 
         AnimeList result = userListService.getListByUserName("testUser", Status.COMPLETED);
 

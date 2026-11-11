@@ -49,7 +49,7 @@ public class AnimeServiceTests {
 
     @BeforeEach
     public void setUp() {
-        animeService = new AnimeService(objectMapper, apiKeyClient, animeCacheRepository, genericCacheRepository, 3, 50, 1.5);
+        animeService = new AnimeService(objectMapper, apiKeyClient, animeCacheRepository, genericCacheRepository);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class AnimeServiceTests {
         cached.setCachedAt(LocalDateTime.now().minusDays(5)); // expired (TTL is 1 day for current/future years)
 
         when(genericCacheRepository.findById("seasonal:2026:winter")).thenReturn(Optional.of(cached));
-        when(apiKeyClient.get()).thenThrow(new RuntimeException("API is down"));
+        when(apiKeyClient.get()).thenThrow(new org.springframework.web.client.ResourceAccessException("API is down"));
 
         SeasonalAnime result = animeService.getSeasonalAnime("winter", 2026);
 
