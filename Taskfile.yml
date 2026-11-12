@@ -21,3 +21,8 @@ tasks:
     desc: Run the unit and integration tests
     cmds:
       - ./gradlew test
+
+  quality:
+    desc: Check Java sources and verify the quality rule fixtures
+    cmds:
+      - ./gradlew quality

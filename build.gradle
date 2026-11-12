@@ -4,6 +4,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.graalvm.buildtools.native' version '0.10.3'
     id 'jacoco'
+    id 'checkstyle'
 }
 
 group = 'com.gordonpn'
@@ -75,4 +76,91 @@ jacocoTestReport {
 
 tasks.named('bootRun') {
     jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+// Run source analysis on the supported daemon JDK, independently of the Java 25 app.
+def qualityLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(21)
+}
+
+checkstyle {
+    toolVersion = '14.4.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+    sourceSets = [project.sourceSets.main, project.sourceSets.test]
+    maxWarnings = 0
+}
+
+tasks.withType(Checkstyle).configureEach {
+    javaLauncher = qualityLauncher
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+// The standalone CLI needs logging that Gradle's Ant-backed checks supply themselves.
+configurations {
+    qualityCliLogging
+}
+
+dependencies {
+    qualityCliLogging 'commons-logging:commons-logging:1.4.0'
+}
+
+tasks.register('qualityRulesTest') {
+    group = 'verification'
+    description = 'Prove the shared Checkstyle rules accept clean code and reject each known violation.'
+    inputs.files(fileTree('config/checkstyle'))
+    inputs.files(configurations.checkstyle, configurations.qualityCliLogging)
+    outputs.dir(layout.buildDirectory.dir('reports/checkstyle/fixtures'))
+    doLast {
+        def reportsDir = layout.buildDirectory.dir('reports/checkstyle/fixtures').get().asFile
+        reportsDir.mkdirs()
+        def expectedRules = [
+            'Empty.java': 'EmptyStatementCheck',
+            'Equality.java': 'EqualsHashCodeCheck',
+            'Fallthrough.java': 'FallThroughCheck',
+            'WrongName.java': 'OuterTypeFilenameCheck'
+        ]
+        ['clean', 'violations'].each { fixture ->
+            def report = new File(reportsDir, "${fixture}.xml")
+            report.delete() // Never accept a stale report if the CLI fails before writing one.
+            def result = javaexec {
+                executable = qualityLauncher.get().executablePath.asFile.absolutePath
+                classpath = files(configurations.checkstyle, configurations.qualityCliLogging)
+                mainClass = 'com.puppycrawl.tools.checkstyle.Main'
+                args '-c', checkstyle.configFile.absolutePath, '-f', 'xml', '-o', report.absolutePath,
+                        file("config/checkstyle/fixtures/${fixture}").absolutePath
+                ignoreExitValue = true // Exit codes are the behavior under test, never ignored below.
+            }
+            def parsed = new XmlSlurper().parse(report)
+            def errors = parsed.file.error
+            if (fixture == 'clean') {
+                if (result.exitValue != 0 || !errors.isEmpty()
+                        || parsed.file.collect { new File(it.@name.text()).name } != ['Clean.java']) {
+                    throw new GradleException('Clean Checkstyle fixture was rejected')
+                }
+            } else {
+                def actualRules = parsed.file.collectEntries { checked ->
+                    [(new File(checked.@name.text()).name): checked.error.collect {
+                        it.@source.text().tokenize('.').last()
+                    }]
+                }
+                def expected = expectedRules.collectEntries { name, rule -> [(name): [rule]] }
+                if (result.exitValue != expectedRules.size() || actualRules != expected) {
+                    throw new GradleException("Expected one rejection per enabled rule, got exit ${result.exitValue}: ${actualRules}")
+                }
+            }
+        }
+    }
+}
+
+tasks.register('quality') {
+    group = 'verification'
+    description = 'Run Java source checks and their positive/negative rule fixtures.'
+    dependsOn 'checkstyleMain', 'checkstyleTest', 'qualityRulesTest'
+}
+
+tasks.named('check') {
+    dependsOn 'qualityRulesTest'
 }
