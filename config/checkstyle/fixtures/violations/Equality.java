@@ -1,0 +1,6 @@
+public class Equality {
+    @Override
+    public boolean equals(Object other) {
+        return this == other;
+    }
+}
