@@ -179,7 +179,8 @@ public class BackgroundFetchServiceTests {
         AnimeList empty = new AnimeList();
         empty.setData(List.of());
         when(userListService.getListByUserName(eq("@me"), any(Status.class), eq(true))).thenReturn(empty);
-        backgroundFetchService.forceFetchList();
+        var result = backgroundFetchService.forceFetchList();
+        org.junit.jupiter.api.Assertions.assertTrue(result.skippedStatuses().isEmpty());
         for (Status status : Status.values()) {
             verify(userListService).getListByUserName("@me", status, true);
         }
@@ -200,5 +201,31 @@ public class BackgroundFetchServiceTests {
         for (Status status : Status.values()) {
             verify(userListService).getListByUserName("@me", status, true);
         }
+    }
+    @Test
+    void forcedSyncIdentifiesStatusesNotRefreshed() {
+        authorize();
+        AnimeList complete = new AnimeList();
+        complete.setData(List.of());
+        AnimeList paginated = new AnimeList();
+        paginated.setData(List.of());
+        Paging paging = new Paging();
+        paging.setNext("https://example.test/next");
+        paginated.setPaging(paging);
+        when(userListService.getListByUserName(eq("@me"), any(Status.class), eq(true))).thenReturn(complete);
+        when(userListService.getListByUserName("@me", Status.COMPLETED, true)).thenReturn(paginated);
+
+        var result = backgroundFetchService.forceFetchList();
+
+        org.junit.jupiter.api.Assertions.assertEquals(List.of(Status.COMPLETED), result.skippedStatuses());
+        verify(syncStatusRepository, never()).save(argThat(value -> value.getListType().equals("completed")));
+        verify(syncStatusRepository, times(Status.values().length - 1)).save(any());
+    }
+
+    @Test
+    void forcedSyncWithoutAuthorizationReportsEveryStatusSkipped() {
+        var result = backgroundFetchService.forceFetchList();
+        org.junit.jupiter.api.Assertions.assertEquals(List.of(Status.values()), result.skippedStatuses());
+        verifyNoInteractions(userListService, userAnimeListRepository);
     }
 }

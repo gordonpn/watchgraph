@@ -6,6 +6,7 @@ import com.gordonpn.anime.entity.UserAnimeListEntity;
 import com.gordonpn.anime.models.AnimeList;
 import com.gordonpn.anime.models.Datum;
 import com.gordonpn.anime.models.ListStatusType;
+import com.gordonpn.anime.models.SyncResult;
 import com.gordonpn.anime.models.dto.TokenResponse;
 import com.gordonpn.anime.models.userlist.Status;
 import com.gordonpn.anime.repository.SyncStatusRepository;
@@ -35,12 +36,12 @@ public class BackgroundFetchService {
         synchronize(false, LocalDateTime.now());
     }
 
-    public synchronized void forceFetchList() {
-        synchronize(true, LocalDateTime.now());
+    public synchronized SyncResult forceFetchList() {
+        return synchronize(true, LocalDateTime.now());
     }
 
     // One cutoff for the whole run; exactly one hour old is stale.
-    void synchronize(boolean force, LocalDateTime now) {
+    SyncResult synchronize(boolean force, LocalDateTime now) {
         java.util.List<Status> pending = java.util.Arrays.stream(Status.values())
                 .filter(status -> force || syncStatusRepository.findById(status.getType())
                         .map(SyncStatusEntity::getLastSyncedAt)
@@ -48,17 +49,17 @@ public class BackgroundFetchService {
                         .isEmpty())
                 .toList();
         if (pending.isEmpty()) {
-            return;
+            return new SyncResult(java.util.List.of());
         }
         TokenResponse tokenResponse = authorizationState.getTokenResponse();
         if (tokenResponse == null) {
             log.warn("No active authorization token found. Skipping synchronization. Please run 'login' to authenticate.");
-            return;
+            return new SyncResult(pending);
         }
         TokenResponse tokens = tokenExchangeService.refreshToken(tokenResponse);
         if (tokens == null) {
             log.warn("Token refresh failed. Skipping synchronization.");
-            return;
+            return new SyncResult(pending);
         }
         authorizationState.setTokenResponse(tokens);
         
@@ -68,12 +69,14 @@ public class BackgroundFetchService {
         tokenEntity.setExpiresAt(tokens.getExpiresAt());
         tokenRepository.save(tokenEntity);
 
+        java.util.List<Status> skipped = new java.util.ArrayList<>();
         for (Status status : pending) {
             java.util.Set<Integer> fetchedAnimeIds = new java.util.HashSet<>();
             log.info("Fetching anime list for status: {}", status.getType());
             AnimeList listByUserName = userListService.getListByUserName("@me", status, true);
             if (listByUserName == null || listByUserName.getData() == null) {
                 log.warn("No anime list data to save");
+                skipped.add(status);
                 continue;
             }
             if ((listByUserName.getPaging() != null && listByUserName.getPaging().getNext() != null
@@ -81,6 +84,7 @@ public class BackgroundFetchService {
                     || listByUserName.getData().stream().anyMatch(datum -> datum == null
                     || datum.getNode() == null || datum.getNode().getId() == null)) {
                 log.warn("Incomplete anime list for {}; retaining local snapshot and timestamp", status);
+                skipped.add(status);
                 continue;
             }
             ListStatusType listStatusType = ListStatusType.fromValue(status.getType());
@@ -122,7 +126,7 @@ public class BackgroundFetchService {
             log.debug("Updated sync status timestamp for: {}", listStatusType);
             log.info("Saved {} anime entries", listByUserName.getData().size());
         }
-
+        return new SyncResult(skipped);
     }
 
     public void fetchAnimeAnAnime() {

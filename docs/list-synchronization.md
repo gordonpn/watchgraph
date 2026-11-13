@@ -10,4 +10,6 @@ Missing data, malformed entries, and responses with a `paging.next` link retain
 that status's snapshot and timestamp; pagination is not yet supported by the list
 client. Exceptions abort the run and propagate without marking failed work fresh.
 Cleanup applies only to each successful status, including successful empty lists.
-
+The command reports success only when every status refreshes. Otherwise it reports
+incomplete synchronization and names the statuses whose local snapshots were
+retained, including when authorization is missing or token refresh returns no token.

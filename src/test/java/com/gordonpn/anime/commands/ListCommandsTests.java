@@ -1,6 +1,8 @@
 package com.gordonpn.anime.commands;
 
 import com.gordonpn.anime.models.AnimeList;
+import com.gordonpn.anime.models.SyncResult;
+import java.util.List;
 import com.gordonpn.anime.models.userlist.Status;
 import com.gordonpn.anime.service.BackgroundFetchService;
 import com.gordonpn.anime.service.UserListService;
@@ -47,9 +49,18 @@ public class ListCommandsTests {
 
     @Test
     public void testSyncCommand() throws Exception {
+        when(backgroundFetchService.forceFetchList()).thenReturn(new SyncResult(List.of()));
         String result = listCommands.sync();
 
         assertEquals("List sync completed successfully!", result);
         verify(backgroundFetchService, times(1)).forceFetchList();
+    }
+    @Test
+    void incompleteSyncNamesSkippedStatusesWithoutClaimingSuccess() {
+        when(backgroundFetchService.forceFetchList()).thenReturn(new SyncResult(List.of(Status.COMPLETED)));
+        String result = listCommands.sync();
+        org.junit.jupiter.api.Assertions.assertTrue(result.contains("incomplete"));
+        org.junit.jupiter.api.Assertions.assertTrue(result.contains("completed"));
+        org.junit.jupiter.api.Assertions.assertFalse(result.contains("successfully"));
     }
 }
