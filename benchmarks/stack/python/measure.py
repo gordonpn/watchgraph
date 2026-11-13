@@ -11,6 +11,33 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 
+def cpu_model(cpuinfo: Path = Path('/proc/cpuinfo')) -> str:
+    try:
+        for line in cpuinfo.read_text().splitlines():
+            key, separator, value = line.partition(':')
+            if separator and key.strip() == 'model name' and value.strip():
+                return value.strip()
+    except OSError:
+        pass
+    if platform.system() == 'Darwin':
+        try:
+            return subprocess.check_output(['sysctl', '-n', 'machdep.cpu.brand_string'],
+                                           text=True, stderr=subprocess.DEVNULL).strip() or 'unavailable'
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    return 'unavailable'
+
+def source_revision(root: Path = ROOT) -> str:
+    try:
+        revision = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'],
+                                           text=True, stderr=subprocess.DEVNULL).strip()
+        changes = subprocess.check_output(['git', '-C', str(root), 'status', '--porcelain',
+                                           '--untracked-files=normal'],
+                                          text=True, stderr=subprocess.DEVNULL)
+        return revision + (' (dirty)' if changes else ' (clean)')
+    except (OSError, subprocess.CalledProcessError):
+        return 'unavailable (not a Git checkout)'
+
 @dataclass(frozen=True)
 class Trial:
     candidate: str
@@ -41,6 +68,9 @@ def percentile(values: list[float], fraction: float) -> float:
 
 def main() -> None:
     os.chdir(ROOT)
+    # Capture identity before generated results can dirty an otherwise clean tree.
+    host_cpu = cpu_model()
+    revision = source_revision()
     Path('results').mkdir(exist_ok=True)
     jdk = Path(os.environ['JDK25_HOME'])
     java = str(jdk / 'bin/java')
@@ -73,6 +103,8 @@ def main() -> None:
     rows.extend(f'{t.candidate},{t.trial},{t.first_ms:.6f},{t.total_ms:.6f},{t.rss_mib:.6f}' for t in trials)
     Path('results/trials.csv').write_text('\n'.join(rows) + '\n')
     report = [f'Host: {platform.platform()}; {platform.machine()}; {os.cpu_count()} logical CPUs.',
+              f'CPU model: {host_cpu}.',
+              f'Source revision: {revision}.',
               f'Output SHA-256: `{hashlib.sha256(reference).hexdigest()}`.', '',
               '| Candidate | first stdout p50 ms | p95 ms | p99 ms | peak RSS p50 MiB | peak RSS max MiB | runtime payload bytes |',
               '|---|---:|---:|---:|---:|---:|---:|']

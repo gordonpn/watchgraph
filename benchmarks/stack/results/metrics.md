@@ -1,4 +1,6 @@
 Host: Linux-6.18.57-x86_64-with-glibc2.41; x86_64; 5 logical CPUs.
+CPU model: unavailable (not recorded during the original run).
+Source revision: unavailable (not recorded during the original run).
 Output SHA-256: `0c8f2ca050be3371c06eaa87f02f1df2a2b3d7b1985dcad525a2b47e0eb57f53`.
 
 | Candidate | first stdout p50 ms | p95 ms | p99 ms | peak RSS p50 MiB | peak RSS max MiB | runtime payload bytes |

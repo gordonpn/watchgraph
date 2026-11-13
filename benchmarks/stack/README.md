@@ -82,6 +82,10 @@ component partition, ranking order and percentile convention.
 are actual Linux measurements from this
 managed development host. macOS is **unrun**; no cross-platform performance claim
 or maintainer ergonomic decision follows from these numbers.
+The original run did not capture CPU model or source revision; those historical
+fields are marked unavailable. Future reports record the host CPU model and Git
+revision with clean/dirty state, or explicitly report unavailable metadata when
+running outside a Git checkout or on a host without CPU model information.
 
 Each of 10 trials per candidate spawns a fresh process through `/bin/sh`; timing
 starts before spawning and ends at the first stdout byte. All candidates compute
