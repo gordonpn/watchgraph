@@ -59,7 +59,9 @@ These are established patterns in the codebase — follow them, don't fight them
 ### API Request Retry Strategy
 - **Fail-fast (no retry)**: 404, 401, 403 — permanent states.
 - **Retryable**: 429 rate limits, 5xx server errors, network `IOException`.
-- Implemented via `MalRetryInterceptor` (Spring `ClientHttpRequestInterceptor`) on the `apiKeyClient` bean.
+- Implemented exclusively via `MalRetryInterceptor` (Spring `ClientHttpRequestInterceptor`) on the `apiKeyClient` bean; services do not run outer retry loops.
+- Attempt limits count total HTTP attempts; nonpositive limits retry indefinitely until interrupted. Backoff is capped at 15 seconds. Interrupted requests stop before another HTTP attempt and retain the interrupt flag.
+- Malformed, HTML, and null payloads fail immediately without retry. Permanent HTTP errors and interruption do not use expired-cache fallback.
 - Configured in `application.properties`: `mal.retry.max-attempts`, `mal.retry.initial-backoff-ms`, `mal.retry.backoff-multiplier`.
 
 ### Caching Strategy

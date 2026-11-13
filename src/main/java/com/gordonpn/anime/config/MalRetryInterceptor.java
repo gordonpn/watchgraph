@@ -2,12 +2,15 @@ package com.gordonpn.anime.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.HttpStatusCode;
 
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 @Slf4j
 public class MalRetryInterceptor implements ClientHttpRequestInterceptor {
@@ -27,7 +30,10 @@ public class MalRetryInterceptor implements ClientHttpRequestInterceptor {
         long backoffMs = initialBackoffMs;
         boolean infinite = maxAttempts <= 0;
 
-        for (int attempt = 1; infinite || attempt <= maxAttempts; attempt++) {
+        for (long attempt = 1; infinite || attempt <= maxAttempts; attempt++) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new java.io.InterruptedIOException("MAL request interrupted");
+            }
             try {
                 ClientHttpResponse response = execution.execute(request, body);
                 HttpStatusCode status = response.getStatusCode();
@@ -49,7 +55,9 @@ public class MalRetryInterceptor implements ClientHttpRequestInterceptor {
                         continue;
                     }
                 }
-                return response;
+                // RestClient converts the body after the interceptor returns. Read successful
+                // responses here so network failures share this retry budget and classification.
+                return status.isError() ? response : bufferResponse(response);
             } catch (IOException e) {
                 boolean shouldRetry = infinite || (attempt < maxAttempts);
                 if (shouldRetry) {
@@ -63,6 +71,32 @@ public class MalRetryInterceptor implements ClientHttpRequestInterceptor {
             }
         }
         throw new IOException("Retry limit exceeded for request to " + request.getURI());
+    }
+
+    private ClientHttpResponse bufferResponse(ClientHttpResponse response) throws IOException {
+        try (response) {
+            HttpStatusCode status = response.getStatusCode();
+            String statusText = response.getStatusText();
+            HttpHeaders headers = new HttpHeaders();
+            headers.addAll(response.getHeaders());
+            byte[] bytes = response.getBody().readAllBytes();
+            return new ClientHttpResponse() {
+                @Override
+                public HttpStatusCode getStatusCode() { return status; }
+
+                @Override
+                public String getStatusText() { return statusText; }
+
+                @Override
+                public HttpHeaders getHeaders() { return headers; }
+
+                @Override
+                public InputStream getBody() { return new ByteArrayInputStream(bytes); }
+
+                @Override
+                public void close() { /* Network response was closed after buffering. */ }
+            };
+        }
     }
 
     protected void sleep(long ms) {
