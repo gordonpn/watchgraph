@@ -12,6 +12,8 @@ import com.gordonpn.anime.repository.TokenRepository;
 import com.gordonpn.anime.repository.UserAnimeListRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,8 +55,9 @@ public class BackgroundFetchServiceTests {
         );
     }
 
-    @Test
-    public void testFetchList() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testFetchList(boolean includeInvalidIds) throws Exception {
         TokenResponse mockToken = new TokenResponse();
         when(authorizationState.getTokenResponse()).thenReturn(mockToken);
         when(tokenExchangeService.refreshToken(mockToken)).thenReturn(mockToken);
@@ -68,6 +71,13 @@ public class BackgroundFetchServiceTests {
         node.setTitle("Test Anime");
         item.setNode(node);
         data.add(item);
+        for (Integer invalidId : includeInvalidIds ? java.util.Arrays.asList(0, -1, null) : List.<Integer>of()) {
+            Datum invalid = new Datum();
+            Node invalidNode = new Node();
+            invalidNode.setId(invalidId);
+            invalid.setNode(invalidNode);
+            data.add(invalid);
+        }
         mockList.setData(data);
 
         when(userListService.getListByUserName(eq("@me"), any(Status.class))).thenReturn(mockList);
@@ -79,5 +89,8 @@ public class BackgroundFetchServiceTests {
         // Verify userAnimeListRepository.save is called for each status (Status.values().length = 6)
         verify(userAnimeListRepository, times(Status.values().length)).save(any(UserAnimeListEntity.class));
         verify(syncStatusRepository, times(Status.values().length)).save(any(SyncStatusEntity.class));
+        verify(userAnimeListRepository, never()).findByAnimeId(argThat(id -> id == null || id <= 0));
+        verify(userAnimeListRepository, times(Status.values().length))
+                .save(argThat(entity -> entity.getAnimeId() == 100));
     }
 }

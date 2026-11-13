@@ -62,6 +62,28 @@ public class RecommendationFacade {
             Double freshnessBoost, 
             Boolean excludeWatchedFranchises, 
             Boolean groupCandidates) {
+        if (userName == null || userName.isBlank()) {
+            throw new IllegalArgumentException("userName must not be blank");
+        }
+        if (limit <= 0) {
+            throw new IllegalArgumentException("limit must be positive");
+        }
+        if (minYear != null && minYear <= 0) {
+            throw new IllegalArgumentException("minYear must be positive when provided");
+        }
+        if (maxYear != null && maxYear <= 0) {
+            throw new IllegalArgumentException("maxYear must be positive when provided");
+        }
+        if (minYear != null && maxYear != null && minYear > maxYear) {
+            throw new IllegalArgumentException("minYear must not exceed maxYear");
+        }
+        if (decayMonths != null && decayMonths < 0) {
+            throw new IllegalArgumentException("decayMonths must be nonnegative");
+        }
+        if (freshnessBoost != null && (!Double.isFinite(freshnessBoost) || freshnessBoost < 0)) {
+            throw new IllegalArgumentException("freshnessBoost must be finite and nonnegative");
+        }
+
         List<Integer> completedIds = new ArrayList<>();
         Map<Integer, String> completedIdToTitleMap = new HashMap<>();
         Map<Integer, Integer> completedIdToUserScoreMap = new HashMap<>();
@@ -75,6 +97,10 @@ public class RecommendationFacade {
             List<UserAnimeListEntity> droppedLocal = userAnimeListRepository.findByStatus(ListStatusType.DROPPED);
 
             for (UserAnimeListEntity entity : completedLocal) {
+                if (entity.getAnimeId() == null || entity.getAnimeId() <= 0) {
+                    log.warn("Skipping local completed entry with invalid anime ID: {}", entity.getAnimeId());
+                    continue;
+                }
                 completedIds.add(entity.getAnimeId());
                 String title = animeCacheRepository.findById(entity.getAnimeId())
                         .map(AnimeCacheEntity::getTitle)
