@@ -26,3 +26,8 @@ existing prompts; the recommendation limit defaults to 10, year filters are
 optional, and absent or zero temporal values disable the corresponding weighting.
 The two-argument facade overload leaves all filters absent. Valid recommendation
 scoring and franchise grouping are unchanged.
+
+Local list synchronization skips missing or nonpositive anime IDs before repository
+lookup or persistence. Recommendations also skip existing completed local rows with
+invalid IDs before cache or detail lookups, so valid rows still contribute normally.
+The public anime lookup contract remains strict.

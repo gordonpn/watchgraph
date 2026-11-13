@@ -11,6 +11,8 @@ import com.gordonpn.anime.service.AnimeService;
 import com.gordonpn.anime.service.UserListService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RecommendationFacadeTests {
@@ -52,17 +54,31 @@ public class RecommendationFacadeTests {
         );
     }
 
-    @Test
-    public void testGetRecommendationsLocal() throws Exception {
+    private UserAnimeListEntity localEntry(Integer animeId) {
+        UserAnimeListEntity entity = new UserAnimeListEntity();
+        entity.setAnimeId(animeId);
+        entity.setStatus(ListStatusType.COMPLETED);
+        return entity;
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void testGetRecommendationsLocal(boolean includeInvalidIds) throws Exception {
         // Prepare local list for @me
         UserAnimeListEntity completedEntity = new UserAnimeListEntity();
         completedEntity.setAnimeId(101);
         completedEntity.setStatus(ListStatusType.COMPLETED);
 
         when(userAnimeListRepository.findByStatus(ListStatusType.COMPLETED))
-                .thenReturn(List.of(completedEntity));
+                .thenReturn(includeInvalidIds
+                        ? java.util.Arrays.asList(localEntry(0), localEntry(-1), localEntry(null), completedEntity)
+                        : List.of(completedEntity));
         when(userAnimeListRepository.findByStatus(ListStatusType.DROPPED))
                 .thenReturn(Collections.emptyList());
+
+        // Match the public detail service's strict invalid-ID contract.
+        lenient().doThrow(new IllegalArgumentException("animeId must be positive"))
+                .when(animeService).getAnimeById(intThat(id -> id <= 0));
 
         // Mock details lookup for completed anime
         AnimeDetails completedDetails = new AnimeDetails();
@@ -100,6 +116,8 @@ public class RecommendationFacadeTests {
 
         assertNotNull(results);
         assertEquals(1, results.size());
+        verify(animeService, never()).getAnimeById(intThat(id -> id <= 0));
+        verify(animeCacheRepository, never()).findById(argThat(id -> id == null || id <= 0));
         assertEquals(9.5, results.get(0).getScore());
         assertEquals("Because you liked Completed Show", results.get(0).getExplanation());
     }

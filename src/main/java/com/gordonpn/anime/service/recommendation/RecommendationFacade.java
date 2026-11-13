@@ -97,6 +97,10 @@ public class RecommendationFacade {
             List<UserAnimeListEntity> droppedLocal = userAnimeListRepository.findByStatus(ListStatusType.DROPPED);
 
             for (UserAnimeListEntity entity : completedLocal) {
+                if (entity.getAnimeId() == null || entity.getAnimeId() <= 0) {
+                    log.warn("Skipping local completed entry with invalid anime ID: {}", entity.getAnimeId());
+                    continue;
+                }
                 completedIds.add(entity.getAnimeId());
                 String title = animeCacheRepository.findById(entity.getAnimeId())
                         .map(AnimeCacheEntity::getTitle)
