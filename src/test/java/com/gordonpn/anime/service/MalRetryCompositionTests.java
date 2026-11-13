@@ -29,6 +29,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,6 +60,33 @@ class MalRetryCompositionTests {
         boolean transientFailure = status == 0 || status == 429 || status >= 500;
         assertEquals(transientFailure ? 3 : 1, fixture.attempts);
         assertEquals(transientFailure ? List.of(10L, 20L) : List.of(), fixture.waits);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Boundary.class)
+    void responseBodyIoFailuresRetryThenRecover(Boundary boundary) {
+        Fixture fixture = new Fixture(boundary, 3, -1, -1, 200);
+        assertNotNull(fixture.fetch());
+        assertEquals(3, fixture.attempts);
+        assertEquals(List.of(10L, 20L), fixture.waits);
+        assertEquals(2, fixture.failedResponsesClosed);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Boundary.class)
+    void exhaustedResponseBodyIoFailuresPreserveTransientFallback(Boundary boundary) {
+        Fixture fixture = new Fixture(boundary, 3, -1);
+        assertThrows(ResourceAccessException.class, fixture::fetch);
+        assertEquals(3, fixture.attempts);
+        assertEquals(List.of(10L, 20L), fixture.waits);
+        assertEquals(3, fixture.failedResponsesClosed);
+
+        Fixture cached = new Fixture(boundary, 3, -1);
+        cached.cache(cached.payload);
+        assertNotNull(cached.fetch());
+        assertEquals(3, cached.attempts);
+        assertEquals(List.of(10L, 20L), cached.waits);
+        assertEquals(3, cached.failedResponsesClosed);
     }
 
     @ParameterizedTest
@@ -187,6 +215,7 @@ class MalRetryCompositionTests {
         final AnimeService anime;
         final UserListService lists;
         int attempts;
+        int failedResponsesClosed;
         boolean interruptOnWait;
         String payload;
 
@@ -210,6 +239,23 @@ class MalRetryCompositionTests {
                         when(request.execute()).thenAnswer(invocation -> {
                             int status = statuses[Math.min(attempts++, statuses.length - 1)];
                             if (status == 0) throw new IOException("offline");
+                            if (status == -1) {
+                                return new MockClientHttpResponse(new InputStream() {
+                                    private int reads;
+
+                                    @Override
+                                    public int read() throws IOException {
+                                        if (reads++ == 0) return '{';
+                                        throw new IOException("connection reset while reading response body");
+                                    }
+                                }, HttpStatusCode.valueOf(200)) {
+                                    @Override
+                                    public void close() {
+                                        failedResponsesClosed++;
+                                        super.close();
+                                    }
+                                };
+                            }
                             MockClientHttpResponse response = new MockClientHttpResponse(payload.getBytes(StandardCharsets.UTF_8), HttpStatusCode.valueOf(status));
                             response.getHeaders().setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
                             return response;
