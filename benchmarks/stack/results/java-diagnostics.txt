@@ -1,0 +1,4 @@
+build/Probe.java:1: error: incompatible types: int cannot be converted to String
+class Probe { String score = 1; }
+                             ^
+1 error
