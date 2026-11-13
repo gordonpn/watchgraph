@@ -16,7 +16,15 @@ cd benchmarks/stack
 .tools/venv/bin/python -m unittest discover -s python -p 'test_*.py'
 .tools/venv/bin/python python/audit.py
 .tools/venv/bin/python python/measure.py
+# Regression check in a temporary copy (does not overwrite recorded results):
+bash test_java_artifact.sh
 ```
+
+After editing a candidate, run `verify.sh` to compile/check all current sources
+and measure their golden-output equality. The audit repackages the Java JAR after
+compilation, before measurement. `test_java_artifact.sh` leaves an old golden JAR
+in place, edits the Java score, and checks that audit refreshes the JAR and that
+measurement rejects the changed output.
 
 Setup fetches pinned compiler/runtime jars over verified HTTPS and validates the
 committed SHA-256 manifest. Python dependencies, including transitives, are pinned

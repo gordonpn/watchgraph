@@ -32,6 +32,10 @@ def main() -> None:
         valid_ms = (time.perf_counter_ns() - start) / 1e6
         if valid.returncode:
             raise RuntimeError(valid.stdout + valid.stderr)
+        if name == 'Java':
+            # measure.py runs the JAR, so it must contain this compilation.
+            subprocess.run([str(jdk / 'bin/jar'), '--create', '--file', 'build/java.jar',
+                            '--main-class', 'Rank', '-C', 'build/java', '.'], check=True)
         probe.write_text(source)
         start = time.perf_counter_ns()
         invalid = subprocess.run(negative, capture_output=True, text=True)
