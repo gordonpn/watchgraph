@@ -5,9 +5,9 @@ No responses were downloaded from private user accounts. IDs, titles, dates, and
 user scores are invented; no credentials, tokens, or personal data are included.
 
 `AnimeGoldenOutputTests` invokes the command methods with the real recommendation
-facade, ranking, filtering, explanation, formatter, and configured Jackson mapper.
-Only list, anime lookup, and repository boundaries are mocked. An unexpected anime
-lookup fails immediately; no Spring context, HTTP client, OAuth, or database starts.
+facade, ranking, filtering, explanation, and configured Jackson mapper.
+List, anime lookup, repository boundaries, and the unused table formatter are
+mocked. An unexpected anime lookup fails immediately; no Spring context, HTTP client, OAuth, or database starts.
 The tests run with the normal `task test` / Gradle `test` suite and existing CI.
 
 Inputs are `profile.json`, `completed.json`, `dropped.json`, and
@@ -15,13 +15,15 @@ Inputs are `profile.json`, `completed.json`, `dropped.json`, and
 10—12—11. Bridge 12 is absent from the recommendation pool and seasonal input,
 but is the most popular franchise member. These protect connected components,
 bridge representative selection, arithmetic ratings, pooled weighted occurrences,
-completed/dropped exclusions, ordering, explanation text, and JSON/table formatting.
+completed/dropped exclusions, ordering, explanation text, and JSON serialization.
 Separate outputs cover grouped, ungrouped, unrated, empty, and temporal profiles.
 
 Time is fixed at 2026-01-01T12:00 for completion decay and the release year is
 fixed at 2026. Locale is US and restored afterward. Only the current-time line in
 health diagnostics is normalized to `<instant>`; the rest is compared exactly.
-Table fixtures retain ANSI colors, Unicode borders, whitespace, and newlines.
+Terminal/TUI tables, ANSI styling, borders, and padding are deliberately excluded
+from golden coverage following review of PR #174; JSON fixtures retain the
+underlying scores, ordering, representative titles, and empty results.
 `list` currently returns an `AnimeList` DTO; `list.json` captures that DTO through
 the existing mapper for testing, without adding a production JSON output option.
 Health has text baselines for a missing token and an unavailable database.

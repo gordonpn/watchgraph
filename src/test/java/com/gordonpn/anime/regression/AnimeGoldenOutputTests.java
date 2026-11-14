@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/** Offline baseline: real business logic and presentation, mocked external boundaries only. */
+/** Offline baseline: real business logic and JSON serialization, with no terminal rendering. */
 class AnimeGoldenOutputTests {
     private final ObjectMapper mapper = new JacksonConfig().objectMapper();
     private final AnimeService anime = mock(AnimeService.class);
@@ -61,7 +61,7 @@ class AnimeGoldenOutputTests {
         RecommendationFacade facade = new RecommendationFacade(mock(UserAnimeListRepository.class),
                 mock(AnimeCacheRepository.class), lists, anime, new FilteringService(), ranking, new ExplanationService());
         commands = new RecommendationCommands(mapper, mock(RecommendationService.class), anime, facade,
-                null, null, null, new TableFormatter(), null);
+                null, null, null, mock(TableFormatter.class), null);
         SeasonalAnime seasonal = mapper.readValue(resource("seasonal-input.json"), SeasonalAnime.class);
         SeasonalAnime emptySeason = new SeasonalAnime();
         emptySeason.setData(List.of());
@@ -79,15 +79,14 @@ class AnimeGoldenOutputTests {
     }
 
     @Test
-    void recommendationJsonAndTable() throws Exception {
-        golden("recommendation.json", recommend(true, true, 0, 0.0));
-        golden("recommendation.txt", recommend(false, true, 0, 0.0));
+    void recommendationJson() throws Exception {
+        golden("recommendation.json", recommend(true, 0, 0.0));
     }
 
     @Test
     void temporalAndUngroupedProfiles() throws Exception {
-        golden("recommendation-temporal.json", recommend(true, true, 12, 0.15));
-        golden("recommendation-ungrouped.json", recommend(true, false, 0, 0.0));
+        golden("recommendation-temporal.json", recommend(true, 12, 0.15));
+        golden("recommendation-ungrouped.json", recommend(false, 0, 0.0));
     }
 
     @Test
@@ -95,20 +94,18 @@ class AnimeGoldenOutputTests {
         AnimeList completed = mapper.readValue(resource("completed.json"), AnimeList.class);
         completed.getData().forEach(datum -> datum.getListStatus().setScore(0));
         when(lists.getListByUserName("fixture-user", Status.COMPLETED)).thenReturn(completed);
-        golden("recommendation-unrated.json", recommend(true, true, 0, 0.0));
+        golden("recommendation-unrated.json", recommend(true, 0, 0.0));
         completed.setData(List.of());
-        golden("recommendation-empty.json", recommend(true, true, 0, 0.0));
-        golden("recommendation-empty.txt", recommend(false, true, 0, 0.0));
+        golden("recommendation-empty.json", recommend(true, 0, 0.0));
     }
 
-    private String recommend(boolean json, boolean grouped, int decay, double freshness) {
-        return commands.recommendation("fixture-user", json, 10, 1900, 2100, false, grouped, decay, freshness);
+    private String recommend(boolean grouped, int decay, double freshness) {
+        return commands.recommendation("fixture-user", true, 10, 1900, 2100, false, grouped, decay, freshness);
     }
 
     @Test
-    void seasonalJsonAndTable() throws Exception {
+    void seasonalJson() throws Exception {
         golden("seasonal.json", commands.seasonal("1", true, 10));
-        golden("seasonal.txt", commands.seasonal("1", false, 10));
     }
 
     @Test
