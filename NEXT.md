@@ -1,5 +1,28 @@
 # Project Execution Queue
 
+> Dated planning snapshot. Check current issue state before selecting work; unmerged PR work is not shipped. See [source inventory and precedence](docs/CURRENT_STATE.md).
+
+## Reconciliation snapshot — 2026-11-13
+
+Source baseline: main `6b4ade2371cf3da2009aa06821f6d60c0cee69f7`. This is a dated planning snapshot, not a live queue. PRs #169–#180 are open and unmerged at this reconciliation; their features are not shipped in the source inventory. Recheck GitHub before selecting or implementing work.
+
+The current independent batch is #23, #25, #27, #28, #29 (including #107), and #36. Each targets main independently; no implementation in this batch assumes another open PR has merged.
+
+| Prerequisite | Next work after prerequisite delivery/review |
+|---|---|
+| #29 documentation reconciliation | #35 documentation CI/linter/link gate |
+| #23 shared franchise grouping | #24 seasonal ranking extraction |
+| PR #175 / #20 retry classification | #21 and #22 |
+| PR #173 | #181 pagination follow-up |
+| PR #179 | #183 supported Gradle/toolchain upgrade |
+| #32 and #34 | #106 |
+
+Additional independent investigation candidates are Java feature issues #38, #39, #46, #47 and research issues #51, #54, #59, #64, #65. They are not selected feature implementations in this batch; validate their own prerequisites and acceptance criteria before work. An investigation candidate is not a claim of implementation readiness or architecture approval.
+
+## Earlier execution queue (preserved history)
+
+The sections below retain the 2026-10-29 queue and its reported issue/PR statuses. They do not supersede the reconciliation snapshot above or establish current hosted issue state.
+
 **Last Refined:** 2026-10-29 01:10 EDT  
 **Repository:** [gordonpn/anime-recommendation](https://github.com/gordonpn/anime-recommendation)  
 **GitHub Backlog:** [View All Issues](https://github.com/gordonpn/anime-recommendation/issues)  

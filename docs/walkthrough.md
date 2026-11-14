@@ -1,11 +1,13 @@
 # Completion Walkthrough — Interactive CLI Presentation Layer & Terminal Configuration Fix
 
+> **Status:** Historical completion record. Completed steps and verification outputs below are preserved as reported at that time, not rerun for this documentation change. The [current inventory and invariants](CURRENT_STATE.md) take precedence; later TerminalUI steps supersede earlier raw-buffer dashboard descriptions.
+
 I have completed the presentation layer refactoring of the anime recommendation CLI and resolved the runtime initialization bug that threw `java.lang.IllegalArgumentException: terminal must be set`.
 
 ## Summary of Changes
 
 ### 1. Extracted Table Formatter Service
-- **[TableFormatter.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/service/recommendation/explanation/TableFormatter.java)** (New):
+- **[TableFormatter.java](../src/main/java/com/gordonpn/anime/service/recommendation/explanation/TableFormatter.java)** (New):
   - Created a dedicated presentation service that constructs high-fidelity output grids.
   - Implements `formatRecommendations`, `formatSeasonal`, and `formatSuggestions` methods.
   - Uses JLine 3's `AttributedStringBuilder` and `AttributedStyle` with unicode box-drawing characters (`│`, `─`, `┼`).
@@ -14,14 +16,14 @@ I have completed the presentation layer refactoring of the anime recommendation 
   - Corrected horizontal border line widths for `formatSeasonal` and `formatSuggestions` tables to resolve 1-character column separator misalignment offsets.
 
 ### 2. Implemented Asynchronous Status Spinner
-- **[TerminalSpinner.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/util/TerminalSpinner.java)** (New):
+- **[TerminalSpinner.java](../src/main/java/com/gordonpn/anime/util/TerminalSpinner.java)** (New):
   - Implemented an `AutoCloseable` progress spinner utility.
   - Manages a daemon background thread that animates braille frames (`⠋`, `⠙`, `⠹`...) at an 80ms interval.
   - Employs escape carriage returns (`\r`) and erase-line instructions (`\033[K`) to dynamically render loader states on a single line.
   - Wipes itself cleanly from the terminal line buffer upon calling `close()`.
 
 ### 3. Integrated Spring Shell ComponentFlows
-- **[RecommendationCommands.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)**:
+- **[RecommendationCommands.java](../src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)**:
   - Removed old primitive string parsing methods (`promptString`, `promptBoolean`, `promptInt`).
   - Injected Spring Shell's native `ComponentFlow.Builder` and `Terminal`.
   - Configured conditional interactive wizard prompts utilizing arrow-key `SingleItemSelector` selections for boolean formats and multi-choice limits.
@@ -34,22 +36,22 @@ I have completed the presentation layer refactoring of the anime recommendation 
 
 
 ### 4. Created Distraction-Free Analytics Dashboard
-- **[RecommendationCommands.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)**:
+- **[RecommendationCommands.java](../src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)**:
   - Added a new `dashboard` shell command.
   - Switches standard terminal scroll history to JLine's alternate screen buffer (`\033[?1049h`) and hides the cursor (`\033[?25l`).
   - Activates terminal raw keyboard mode (`terminal.enterRawMode()`) to receive immediate keypresses without waiting for Enter.
   - Runs a lightweight event poll loop allowing users to press `[r]` to refresh recommendations or `[q]` to cleanly restore standard terminal buffers (`\033[?1049l` & `\033[?25h`).
 
 ### 5. Automated Tests Preservation
-- **[RecommendationCommandsTests.java](file:///Users/gordonpn/workspace/anime-recommendation/src/test/java/com/gordonpn/anime/commands/RecommendationCommandsTests.java)**:
+- **[RecommendationCommandsTests.java](../src/test/java/com/gordonpn/anime/commands/RecommendationCommandsTests.java)**:
   - Updated mock instantiation of the command class with the new dependencies.
   - Stubbed JLine's `Terminal` and `PrintWriter` behavior.
   - Mocked the fluent builder API sequences for Spring Shell `ComponentFlow` to verify interactive prompt configurations.
   - Added test cases covering both flow branches (preset select vs. custom input routing) and resolved Mockito's strict stubbing errors (`UnnecessaryStubbingException`).
   - Added `testRecommendationInteractivePromptsWithFilters` to verify option parsing works when minimum/maximum year filters and specific presets are input.
-- **[ExplanationServiceTests.java](file:///Users/gordonpn/workspace/anime-recommendation/src/test/java/com/gordonpn/anime/service/recommendation/ExplanationServiceTests.java)** (New):
+- **[ExplanationServiceTests.java](../src/test/java/com/gordonpn/anime/service/recommendation/ExplanationServiceTests.java)** (New):
   - Created a dedicated unit test suite verifying list formatting for zero, some, and exceeding titles.
-- **[TableFormatterTests.java](file:///Users/gordonpn/workspace/anime-recommendation/src/test/java/com/gordonpn/anime/service/recommendation/explanation/TableFormatterTests.java)** (New):
+- **[TableFormatterTests.java](../src/test/java/com/gordonpn/anime/service/recommendation/explanation/TableFormatterTests.java)** (New):
   - Created a dedicated unit test suite checking ANSI layout alignments, color styling, and title truncation on recommendation tables, seasonal tables, and suggestions tables.
 
 ### 6. Variety and Uniqueness Improvements in Recommendations
@@ -57,7 +59,7 @@ I have completed the presentation layer refactoring of the anime recommendation 
   - Implemented connected-components BFS grouping for candidate recommendations. 
   - Recommended sequel/prequel/OVA seasons are consolidated under their most popular representative title, summing their recommendation occurrences and averaging franchise ratings to provide a distinct, diverse recommendations set.
 - **Completed Franchise Exclusion**:
-  - Added the `--exclude-completed` command flag and an interactive selection prompt.
+  - Added the `--excludeCompleted` command flag and an interactive selection prompt.
   - When enabled (`true`), candidate recommendations belonging to any franchise the user has already watched are filtered out, encouraging the exploration of brand new shows.
 
 ### 7. Terminal Initialization Bug Fix

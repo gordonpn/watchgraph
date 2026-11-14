@@ -1,5 +1,7 @@
 # Refactoring Opportunities
 
+> **Status:** Historical audit (June 2026). Findings, line numbers, counts, estimates, and proposed snippets below describe that scan, not current shipped status. Read the [current reconciliation](CURRENT_STATE.md) first: formatter extraction, domain exceptions, utility/DTO/entity moves, and core tests already exist. Old requests to create them are superseded; broader consistency/decomposition remains pending. The old coverage percentage is unsupported and withdrawn. CLI versioning is now covered by the [compatibility policy](CLI_COMPATIBILITY.md).
+
 Comprehensive code scan analysis completed: 2026-06-19 14:00 UTC
 
 ## Quick Summary

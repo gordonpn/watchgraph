@@ -1,5 +1,7 @@
 # Design Document: AniDB API Integration
 
+> **Status:** Unimplemented proposal; external API examples and rate limits have not been revalidated here. This document does not approve integration or override [current invariants](CURRENT_STATE.md), including complete-data/error behavior. Validate provider contracts before implementation.
+
 This document outlines the proposed architecture, implementation steps, and data contracts required to integrate the **AniDB HTTP API** (specifically the **Hot Anime** feed) into the Anime Recommendation CLI application.
 
 ---

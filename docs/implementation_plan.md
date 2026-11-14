@@ -1,5 +1,7 @@
 # Implementation Plan — Completed Show Grouping & Multi-Signal Recommendation Ranking
 
+> **Status:** Historical implementation proposal retained alongside [completed execution tasks](task.md). Its first-degree rating design and file annotations describe that stage, not the current contract. [Current invariants and source inventory](CURRENT_STATE.md) take precedence; do not execute this plan as new authorization or replace connected-component arithmetic averaging.
+
 This plan enhances the recommendation engine by grouping completed shows belonging to the same franchise, using the user's own rating of completed shows to scale recommendation contributions, and factoring in the franchise-wide average rating of recommended candidates.
 
 ## User Review Required
@@ -16,17 +18,17 @@ This plan enhances the recommendation engine by grouping completed shows belongi
 
 ### Data Models & Services
 
-#### [MODIFY] [RecommendationDetailedResult.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/models/RecommendationDetailedResult.java)
+#### [MODIFY] [RecommendationDetailedResult.java](../src/main/java/com/gordonpn/anime/models/dto/RecommendationDetailedResult.java)
 - Change `occurrence` field type from `Integer` to `Double` to support weighted recommendations.
 
-#### [MODIFY] [ExplanationService.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/service/recommendation/ExplanationService.java)
+#### [MODIFY] [ExplanationService.java](../src/main/java/com/gordonpn/anime/service/recommendation/ExplanationService.java)
 - Change `occurrence` parameter from `int` to `double` in `generateExplanation`.
 - Update explanation templates to format the occurrence value as a floating-point number (e.g. `%.1f`).
 
-#### [MODIFY] [RankingService.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/service/recommendation/RankingService.java)
+#### [MODIFY] [RankingService.java](../src/main/java/com/gordonpn/anime/service/recommendation/RankingService.java)
 - Change `occurrence` parameter from `int` to `double` in `calculateScore`.
 
-#### [MODIFY] [RecommendationFacade.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/service/recommendation/RecommendationFacade.java)
+#### [MODIFY] [RecommendationFacade.java](../src/main/java/com/gordonpn/anime/service/recommendation/RecommendationFacade.java)
 - Build a relationship graph among completed shows to group different seasons into connected components.
 - Choose representative titles for groups based on popularity.
 - Calculate average user ratings for groups.
@@ -36,7 +38,7 @@ This plan enhances the recommendation engine by grouping completed shows belongi
 
 ### CLI Command Interface
 
-#### [MODIFY] [RecommendationCommands.java](file:///Users/gordonpn/workspace/anime-recommendation/src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)
+#### [MODIFY] [RecommendationCommands.java](../src/main/java/com/gordonpn/anime/commands/RecommendationCommands.java)
 - Update format string in `recommendation` command to print occurrence as float/double (`%-6.1f` instead of `%-6d`).
 
 ---
