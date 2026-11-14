@@ -1,4 +1,5 @@
 """POSIX fresh-process runner; startup includes shell and first stdout byte."""
+import argparse
 from dataclasses import dataclass
 import hashlib
 import math
@@ -7,6 +8,7 @@ from pathlib import Path
 import platform
 import shlex
 import subprocess
+import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,11 +68,13 @@ def measure(command: list[str]) -> tuple[float, float, float, bytes]:
 def percentile(values: list[float], fraction: float) -> float:
     return sorted(values)[math.ceil(len(values) * fraction) - 1]
 
-def main() -> None:
+def main(*, audit: bool = False) -> None:
     os.chdir(ROOT)
     # Capture identity before generated results can dirty an otherwise clean tree.
     host_cpu = cpu_model()
-    revision = source_revision()
+    revision = source_revision(ROOT)
+    if audit:
+        subprocess.run([sys.executable, 'python/audit.py'], check=True)
     Path('results').mkdir(exist_ok=True)
     jdk = Path(os.environ['JDK25_HOME'])
     java = str(jdk / 'bin/java')
@@ -118,4 +122,7 @@ def main() -> None:
     print('\n'.join(report))
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--audit', action='store_true',
+                        help='compile/type-check after capturing source identity')
+    main(audit=parser.parse_args().audit)

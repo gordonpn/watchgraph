@@ -14,15 +14,17 @@ From the repository root:
 benchmarks/stack/setup.sh
 cd benchmarks/stack
 .tools/venv/bin/python -m unittest discover -s python -p 'test_*.py'
-.tools/venv/bin/python python/audit.py
-.tools/venv/bin/python python/measure.py
+.tools/venv/bin/python python/measure.py --audit
 # Regression check in a temporary copy (does not overwrite recorded results):
 bash test_java_artifact.sh
 ```
 
 After editing a candidate, run `verify.sh` to compile/check all current sources
 and measure their golden-output equality. The audit repackages the Java JAR after
-compilation, before measurement. `test_java_artifact.sh` leaves an old golden JAR
+compilation, before measurement. `measure.py --audit` captures the source revision
+and clean/dirty state before the audit writes generated results; `verify.sh` uses
+this entry point. Standalone `measure.py` captures the state at its own invocation.
+`test_java_artifact.sh` leaves an old golden JAR
 in place, edits the Java score, and checks that audit refreshes the JAR and that
 measurement rejects the changed output.
 
