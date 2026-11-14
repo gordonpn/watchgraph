@@ -106,7 +106,4 @@ public class BackgroundFetchService {
         }
     }
 
-    public void fetchAnimeAnAnime() {
-
-    }
 }
