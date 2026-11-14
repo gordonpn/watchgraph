@@ -1,5 +1,7 @@
 # Execution Tasks
 
+> **Status:** Historical execution checklist. Checked boxes and test/manual verification statements are retained as recorded, not newly verified. Use [current state and precedence](CURRENT_STATE.md) for shipped behavior and current invariants.
+
 - [x] **Flyway Migration & DB Updates**
   - [x] Create `V3__create_anime_cache_and_unique_user_list.sql` Flyway migration
   - [x] Create `AnimeCacheEntity.java` JPA entity

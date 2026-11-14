@@ -1,6 +1,6 @@
 # Architecture (Java Spring CLI)
 
-This document defines the target architecture for this repository.
+This document separates the current baseline from proposed targets. Read [current state and precedence](CURRENT_STATE.md) and the [CLI compatibility policy](CLI_COMPATIBILITY.md); targets do not authorize changes to current invariants.
 The application is focused on a **CLI-first** experience using Spring Shell.
 
 ## 1) Goals
@@ -12,7 +12,7 @@ The application is focused on a **CLI-first** experience using Spring Shell.
 
 ## 2) Current Baseline (what already exists)
 
-- Spring Boot app with Spring Shell commands (10 CLI commands).
+- Spring Boot app with Spring Shell commands (11 application CLI commands, including `dashboard`).
 - MAL OAuth 2.0 PKCE login + token refresh + token persistence.
 - SQLite + Flyway migrations (7 migrations) + JPA repositories (5 tables).
 - Scheduled background list synchronization with upsert + stale-item cleanup.
@@ -25,7 +25,7 @@ The application is focused on a **CLI-first** experience using Spring Shell.
   - Year range filtering.
 - Generic API response caching with TTL + fail-safe fallback to expired cache.
 - Retry interceptor with exponential backoff (configurable).
-- Interactive CLI prompting with defaults for all parameters.
+- Interactive prompts for nullable options on recommendation, seasonal, suggestions, and dashboard.
 - Structured logging redirected to file.
 - Domain exceptions (MalResourceNotFoundException, AnimeDataProcessingException).
 
@@ -129,7 +129,7 @@ Future signals (Phase 6):
 
 ## 6) Data & Persistence
 
-SQLite + Flyway (7 migrations applied).
+SQLite + Flyway (7 migration files; applied state depends on the local database).
 
 Existing tables:
 - `tokens` — OAuth access/refresh tokens (V1)
@@ -180,8 +180,8 @@ Acceptance criteria:
 - [ ] Optional: evaluate Java-native vector search path (OpenSearch/pgvector/Lucene KNN).
 
 Acceptance criteria:
-- ✅ Recommendation quality improved with measurable ranking metrics.
-- ✅ Existing CLI behavior remains backward-compatible.
+- Ranking signals are implemented; measurable quality improvement has not been established by this source inventory.
+- Preserve CLI compatibility according to the documented policy; this is a requirement, not a fresh compatibility test result.
 
 ### Phase D — Decomposition & Refactoring 💡
 
@@ -190,7 +190,7 @@ Acceptance criteria:
 - [ ] Extract `FranchiseRepSelector` from `RecommendationFacade` (representative title selection).
 - [ ] Create `MalApiClient` abstraction over RestClient (see REFACTORING.md Issue #14).
 - [ ] Create `CacheService` with generic `getOrFetch()` (see REFACTORING.md Issue #2).
-- [ ] Create `TableFormatter` service for CLI output consistency.
+- [x] Create `TableFormatter` service for CLI output consistency (`service/recommendation/explanation`).
 - [ ] Consolidate configuration into `@ConfigurationProperties` classes.
 
 ### Phase E — Quick-Win CLI Commands 💡 (see TODO.md Phase 7)
@@ -226,7 +226,7 @@ Acceptance criteria:
 
 ## 10) Multi-Source Anime Lookup (AniList + MyAnimeList Cross-Referencing)
 
-The system supports cross-referencing anime across multiple databases:
+Proposed, not implemented: cross-referencing anime across multiple databases. Provider/query/mapping designs remain subject to contract validation and explicit implementation scope:
 
 - **MyAnimeList (primary)**: Used for user authentication, list management, and primary recommendation source.
 - **AniList (secondary)**: Provides GraphQL-based queries for supplementary anime metadata and ID cross-referencing.

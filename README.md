@@ -15,7 +15,7 @@ The app authenticates via MAL OAuth 2.0 (PKCE), persists local state in **SQLite
 | Migrations | Flyway |
 | HTTP Client | Spring `RestClient` with retry interceptor |
 | Auth | MyAnimeList OAuth 2.0 + PKCE |
-| Build | Gradle 8.12+ (daemon on JDK 21, toolchain JDK 25) |
+| Build | Gradle 8.12.1 (daemon on JDK 21, toolchain JDK 25) |
 | Native Image | GraalVM Native Build Tools (plugin configured) |
 | Boilerplate | Lombok 1.18.46 |
 
@@ -30,11 +30,12 @@ The app authenticates via MAL OAuth 2.0 (PKCE), persists local state in **SQLite
 | `sync` | Synchronize all user lists from MAL to local SQLite |
 | `recommendation --userName @me` | Generate multi-signal personalized recommendations |
 | `seasonal --numYears 5` | Top-rated seasonal anime, grouped by franchise |
+| `dashboard` | Full-screen interactive recommendation dashboard |
 | `suggestions` | MAL's native suggestion feed |
 | `flyway-info` | Show Flyway migration status |
 | `flyway-repair` | Repair Flyway migration checksums |
 
-All commands support **interactive prompting** — if you omit flags, the shell will ask for values with sensible defaults.
+`recommendation`, `seasonal`, `suggestions`, and `dashboard` prompt for omitted nullable options. `list` defaults to `@me`; commands without options do not prompt. Spring Shell 3.3.3 retains Java parameter spelling for these unnamed options; use `help <command>` in the shell. See the [CLI compatibility policy](docs/CLI_COMPATIBILITY.md#contract).
 
 ## Recommendation Engine
 
@@ -78,7 +79,7 @@ The `seasonal` command scans past years of MAL seasonal data, builds a franchise
 - Anime details: 7-day TTL
 - **Fail-safe fallback**: expired cache is returned when the API is unreachable
 
-**API retry**: Configurable exponential backoff via `MalRetryInterceptor`. Permanent errors (401, 403, 404) fail fast; transient errors (429, 5xx, network drops) are retried.
+**API retry policy**: `MalRetryInterceptor` classifies 401/403/404 as permanent and 429/5xx/network failures as retryable. Service-level retry loops still exist at this baseline; end-to-end enforcement is pending (#20). See [current state and precedence](docs/CURRENT_STATE.md).
 
 ## Prerequisites
 
@@ -129,7 +130,7 @@ task test     # run tests
 ./gradlew test
 ```
 
-Tests use JUnit 5 + Spring Boot Test + Spring Shell Test. Test coverage is actively being improved — current focus areas include the recommendation facade, ranking service, and filtering service.
+Tests use JUnit 5 + Spring Boot Test + Spring Shell Test. At the audited main baseline there are 17 Java test files with 52 `@Test` methods, including facade, ranking, filtering, formatter, and command tests. These are source counts, not executed test results or a coverage percentage; see the [inventory](docs/CURRENT_STATE.md).
 
 ## Project Structure
 
@@ -146,7 +147,7 @@ src/main/java/com/gordonpn/anime/
 ├── entity/                       # JPA entities
 ├── repository/                   # Spring Data JPA repositories
 ├── models/                       # MAL API DTOs, domain models
-│   ├── dto/                      # Internal DTOs
+│   ├── dto/                      # API/auth and recommendation output DTOs
 │   └── exception/                # Domain exceptions
 ├── handler/                      # OAuth2 callback HTTP handler
 └── util/                         # PKCE, browser, random state utilities
@@ -156,11 +157,14 @@ src/main/java/com/gordonpn/anime/
 
 | File | Purpose |
 |------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Target architecture and refactoring roadmap |
-| [REFACTORING.md](REFACTORING.md) | Detailed code quality audit and prioritized fixes |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Current baseline and proposed architecture roadmap |
+| [REFACTORING.md](docs/REFACTORING.md) | Historical audit with current reconciliation |
 | [AGENTS.md](AGENTS.md) | AI agent instructions, design decisions, implementation patterns |
-| [TODO.md](TODO.md) | Phased task list for implementation |
-| [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md) | CI/CD workflow recommendations |
+| [TODO.md](docs/TODO.md) | Phased task list for implementation |
+| [GITHUB_ACTIONS.md](docs/GITHUB_ACTIONS.md) | CI/CD proposals; see AUTOMATION.md for checked-in workflows |
+| [CURRENT_STATE.md](docs/CURRENT_STATE.md) | Source inventory and documentation precedence |
+| [CLI_COMPATIBILITY.md](docs/CLI_COMPATIBILITY.md) | CLI compatibility and SemVer policy |
+| [AUTOMATION.md](docs/AUTOMATION.md) | Checked-in workflow contracts |
 | [docs/](docs/) | Implementation plans and walkthroughs |
 
 ## Project Status
@@ -172,4 +176,4 @@ Active development — the CLI interface is functional and the recommendation en
 - Consolidating configuration management
 - Creating a `MalApiClient` HTTP abstraction layer
 
-Contributions should follow the Java-first architecture in [ARCHITECTURE.md](ARCHITECTURE.md). No HTTP API, no frontend, no Python splits — this is a CLI-only project.
+Contributions should follow the Java-first architecture in [ARCHITECTURE.md](docs/ARCHITECTURE.md). No HTTP API, no frontend, no Python splits — this is a CLI-only project.
