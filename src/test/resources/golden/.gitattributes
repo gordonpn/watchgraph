@@ -1,0 +1,3 @@
+# Exact output baselines retain intentional table padding and LF bytes.
+*.txt text eol=lf whitespace=-blank-at-eol
+*.json text eol=lf

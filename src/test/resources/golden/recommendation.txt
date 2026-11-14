@@ -1,0 +1,8 @@
+
+[35;1m=== Personalized Recommendations for fixture-user ===
+[36;1mRank │ Title                                    │ Score  │ Occur  │ Rating │ Explanation
+[90;22m─────┼──────────────────────────────────────────┼────────┼────────┼────────┼──────────────────────────────
+[32;1m1    │ Candidate Bridge                         │ 12.00  │ 8.0    │ 8.0    │ [0mBased on: "Watched Second"
+2    │ Standalone                               │ 7.68   │ 3.4    │ 8.5    │ Based on: "Watched Second"
+[90m═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+[0m

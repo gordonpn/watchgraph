@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "node": {
+        "id": 10,
+        "title": "Candidate First",
+        "mean": 8.0
+      }
+    },
+    {
+      "node": {
+        "id": 11,
+        "title": "Candidate Second",
+        "mean": 9.0
+      }
+    },
+    {
+      "node": {
+        "id": 20,
+        "title": "Standalone",
+        "mean": 8.5
+      }
+    }
+  ]
+}
