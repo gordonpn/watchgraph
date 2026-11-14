@@ -77,7 +77,7 @@ The `seasonal` command scans past years of MAL seasonal data, builds a franchise
 - Current/future season data: 1-day TTL
 - User lists: 1-day TTL
 - Anime details: 7-day TTL
-- **Fail-safe fallback**: expired cache is returned when the API is unreachable
+- **Fail-safe fallback**: expired cache can be returned after API retries are exhausted. With the default infinite retries (`mal.retry.max-attempts=-1`), persistent failures can prevent the fallback from being reached.
 
 **API retry policy**: `MalRetryInterceptor` classifies 401/403/404 as permanent and 429/5xx/network failures as retryable. Service-level retry loops still exist at this baseline; end-to-end enforcement is pending (#20). See [current state and precedence](docs/CURRENT_STATE.md).
 
