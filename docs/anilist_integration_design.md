@@ -1,5 +1,7 @@
 # Design Document: AniList API Integration for Discovery
 
+> **Status:** Unimplemented proposal; GraphQL queries and rate limits are illustrative and have not been revalidated here. This document does not approve integration or override [current invariants](CURRENT_STATE.md). Validate provider contracts before implementation.
+
 This document outlines the proposed design, API schema, and query structures to integrate the **AniList GraphQL API** into the Anime Recommendation CLI. Integrating AniList focuses directly on enhancing the **discovery engine** using AniList's tag systems and GraphQL querying efficiency.
 
 ---

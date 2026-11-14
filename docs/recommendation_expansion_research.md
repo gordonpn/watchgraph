@@ -1,5 +1,7 @@
 # Recommendation Engine Expansion & Research Plan
 
+> **Status:** Research and feature proposals, except explicitly implemented baseline behavior confirmed in [current state](CURRENT_STATE.md). Estimates and external API assumptions are not implementation evidence. Bayesian weighting, new providers, vector stores, and alternative UI libraries do not override current invariants or authorize architecture changes.
+
 This document serves as a reference for expanding the anime recommendation engine's capabilities. It contains brainstorming details for probabilistic ranking models, CLI app expansions, and MyAnimeList API data integration opportunities.
 
 > **Status key:** ✅ Implemented &nbsp;&nbsp; 🔨 In Progress &nbsp;&nbsp; 💡 Planned &nbsp;&nbsp; 🆕 New Idea
@@ -58,9 +60,9 @@ Here are several specific ways we can expand the command-line interface itself t
 4. **Format & Length Constraints (`--type` / `--max-episodes`):**
    * **Concept:** Limit recommendations based on the runtime format (e.g. movies only) or maximum series duration.
    * **CLI Command:** `recommendation --type movie` or `recommendation --max-episodes 13` (short-form shows).
-5. **Release Era Selector (`--min-year` / `--max-year`):** ✅
+5. **Release Era Selector (`--minYear` / `--maxYear`):** ✅
    * **Concept:** Filter suggestions by release decade to target retro/classic anime or focus only on recent releases.
-   * **CLI Command:** `recommendation --min-year 2015 --max-year 2025`
+   * **CLI Command:** `recommendation --minYear 2015 --maxYear 2025`
    * **Status:** Implemented in `RecommendationCommands` (Shell options) and `RecommendationFacade` lines 288–300. Candidates with unknown start years are skipped when a year filter is active.
 6. **Interactive Detail Explainer (`recommendation-detail <id>`):**
    * **Concept:** A separate command that displays details for a recommended show (synopsis, studio, MAL score) and prints the specific user recommendation comments showing why it matches your watched history.
@@ -99,7 +101,7 @@ Looking at the MyAnimeList API v2 specs, we can leverage additional fields in ou
 * **Motivation:** User taste shifts over time; shows watched recently reflect current preferences better than shows watched years ago.
 * **Implementation:** Assign decay weights based on completion date; older shows have less influence on the recommendation signal.
 * **Formula:** `Signal Weight = Base Signal × 2^(-t / decayMonths)` where t is elapsed months since completion.
-* **CLI Command:** `recommendation --decay-months 12` (half-life of 12 months).
+* **CLI Command:** `recommendation --decayMonths 12` (half-life of 12 months).
 * **Status:** Implemented in `RecommendationFacade` lines 249–259. Completion dates sourced from `listStatus.updatedAt` (live API) or `UserAnimeListEntity.updatedAt` (local DB).
 * **Educational Value:** Time-series weighting, exponential decay modeling, and preference evolution.
 
@@ -109,7 +111,7 @@ Looking at the MyAnimeList API v2 specs, we can leverage additional fields in ou
 * **Motivation:** Newer anime often have better production quality, reflect current cultural trends, and allow participation in real-time fandom discussions.
 * **Implementation:** Boost the score of candidate recommendations based on their release date; older shows gradually decrease in relative ranking.
 * **Formula:** `Release Boost = exp(-μ × yearsSinceRelease)` where μ is the freshness boost parameter and yearsSinceRelease = max(0, currentYear - startYear).
-* **CLI Command:** `recommendation --freshness-boost 0.5` (moderate boost for newer releases) or `--freshness-boost 0` (disable, recommend by relevance only).
+* **CLI Command:** `recommendation --freshnessBoost 0.5` (moderate boost for newer releases) or `--freshnessBoost 0` (disable, recommend by relevance only).
 * **Status:** Implemented in `RecommendationFacade` lines 308–314. Applied at the candidate level after base score calculation.
 * **Example:** Two equally-relevant shows, one from 2024 and one from 2015, will rank the 2024 show higher when freshness boost is enabled.
 * **Educational Value:** Balancing relevance vs. discovery, temporal popularity signals, and content aging in ranking systems.

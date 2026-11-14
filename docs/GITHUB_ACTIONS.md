@@ -1,5 +1,7 @@
 # GitHub Actions Workflows Guide
 
+> **Status:** Workflow proposal guide with historical examples, not a workflow inventory. Read [AUTOMATION.md](AUTOMATION.md) for the six checked-in workflows and [current state](CURRENT_STATE.md) for verification limits. Only build/test, coverage, CodeQL, actionlint/reviewdog, DeepSeek, and PR-Agent are checked in at the audited baseline. Code-quality, dependency scanning, commit validation, documentation gating, releases/semantic-release, and Docker sections remain proposals. Example test counts, coverage, durations, release outputs, and branch-protection claims below are illustrative/historical, not verified results or enabled settings.
+
 Analysis completed: 2026-06-19 14:25 UTC
 
 ## Executive Summary
@@ -120,9 +122,9 @@ Additional workflows for code quality, security analysis, and reviewer automatio
 - Scans for known vulnerabilities in dependency tree
 - Workflow triggers on schedule (daily/weekly) or PR
 
-#### c) Gradle Vulnerability Scanner
-- Built into modern Gradle versions
-- Task: `./gradlew dependencyCheckAnalyze`
+#### c) Gradle dependency-check integration (proposed)
+- Requires an added plugin such as OWASP Dependency Check; not built into Gradle
+- `./gradlew dependencyCheckAnalyze` is unavailable until that plugin is configured
 
 **Why needed**:
 - Spring Boot ecosystem has frequent security patches
@@ -419,7 +421,7 @@ Require approval of the latest reviewable push:
   ✓ Yes
 ```
 
-This ensures all code merged to `main` has:
+If configured and enforced, the proposed rules would require:
 - ✅ Passed tests
 - ✅ Met code quality standards
 - ✅ Conventional commit format
@@ -445,7 +447,7 @@ This ensures all code merged to `main` has:
 - [x] Create `.github/workflows/` directory
 - [x] Add `ci-build-test.yml` workflow
 - [x] Test on a branch with a broken test to verify it fails
-- [x] Enable branch protection rule for CI
+- [ ] Verify hosted branch protection rule for CI (not established by repository files)
 - [ ] Add `checkstyle.xml` + SpotBugs to code-quality workflow
 - [ ] Create `.github/dependabot.yml` for automatic updates
 
