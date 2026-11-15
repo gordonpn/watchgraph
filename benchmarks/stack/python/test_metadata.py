@@ -34,7 +34,7 @@ class MetadataTests(unittest.TestCase):
             source.write_text('original\n')
             subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
             subprocess.run(['git', '-C', str(root), '-c', 'user.name=Test',
-                            '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+                            '-c', 'user.email=test@example.invalid', 'commit', '--no-gpg-sign', '-qm', 'fixture'], check=True)
             revision = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
             self.assertEqual(source_revision(root), revision + ' (clean)')
             subprocess.run(['git', '-C', str(root), 'config', 'status.showUntrackedFiles', 'no'], check=True)
@@ -62,7 +62,7 @@ class MetadataTests(unittest.TestCase):
                     subprocess.run(['git', 'init', '-q', str(root)], check=True)
                     subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
                     subprocess.run(['git', '-C', str(root), '-c', 'user.name=Test',
-                                    '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+                                    '-c', 'user.email=test@example.invalid', 'commit', '--no-gpg-sign', '-qm', 'fixture'], check=True)
                     if dirty:
                         source.write_text('changed\n')
                     expected = source_revision(root)
@@ -74,6 +74,21 @@ class MetadataTests(unittest.TestCase):
                     self.assertIn('Source revision: ' + expected + '.',
                                   (root / 'results/metrics.md').read_text())
                     self.assertTrue(source_revision(root).endswith(' (dirty)'))
+        finally:
+            os.chdir(previous)
+
+    def test_missing_golden_fails_before_audit_or_trials(self) -> None:
+        previous = Path.cwd()
+        try:
+            for audit in (False, True):
+                with self.subTest(audit=audit), tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    with patch('measure.ROOT', root), patch.dict(os.environ, {'JDK25_HOME': directory}):
+                        with patch('measure.measure', return_value=(1.0, 2.0, 3.0, b'row\n' * 1000)) as trial:
+                            with self.assertRaisesRegex(FileNotFoundError, 'output.csv'):
+                                main(audit=audit)
+                        trial.assert_not_called()
+                    self.assertFalse((root / 'results').exists())
         finally:
             os.chdir(previous)
 

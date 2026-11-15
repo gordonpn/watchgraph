@@ -73,7 +73,8 @@ is the canonical integer score, not raw floating point: byte equality means all
 UTF-8 CSV bytes `id,component,micro_score\n` match after sorting score descending,
 then ID ascending. It does not assert raw binary64 identity on other hosts.
 The committed output is a reproducible regression artifact; subsequent runs reject
-any change against that golden file. Tests also cover the
+any change against that golden file. A missing golden file fails verification;
+measurement never creates or overwrites the baseline. Tests also cover the
 prior with zero votes, unrated fallback, exact half-life, strict input validation,
 component partition, ranking order and percentile convention.
 
@@ -82,7 +83,9 @@ component partition, ranking order and percentile convention.
 [Metrics](results/metrics.md), [raw 30 trials](results/trials.csv), and
 [type-check results](results/types.md), and [tool/host versions](results/environment.txt)
 are actual Linux measurements from this
-managed development host. macOS is **unrun**; no cross-platform performance claim
+managed development host. Ten trials per candidate on a maintainer local
+development machine remain outstanding for #133; these shared-cloud runs do not
+satisfy that verification-plan requirement. macOS is **unrun**; no cross-platform performance claim
 or maintainer ergonomic decision follows from these numbers.
 The original run did not capture CPU model or source revision; those historical
 fields are marked unavailable. Future reports record the host CPU model and Git

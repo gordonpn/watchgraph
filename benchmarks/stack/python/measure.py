@@ -70,6 +70,8 @@ def percentile(values: list[float], fraction: float) -> float:
 
 def main(*, audit: bool = False) -> None:
     os.chdir(ROOT)
+    # Verification requires the committed baseline; never bless a candidate output.
+    reference = Path('results/output.csv').read_bytes()
     # Capture identity before generated results can dirty an otherwise clean tree.
     host_cpu = cpu_model()
     revision = source_revision(ROOT)
@@ -90,19 +92,13 @@ def main(*, audit: bool = False) -> None:
           and not any(part.endswith('.dist-info') for part in p.parts)]]),
     ]
     trials: list[Trial] = []
-    golden = Path('results/output.csv')
-    reference: bytes | None = golden.read_bytes() if golden.exists() else None
     # Interleave candidates to reduce ordering/host load bias. No warmup runs.
     for trial in range(1, 11):
         for name, command, _ in candidates:
             first_ms, total_ms, rss_mib, output = measure(command)
-            if reference is None:
-                reference = output
             if output != reference or len(output.splitlines()) != 1000:
                 raise AssertionError(f'{name} trial {trial}: output mismatch')
             trials.append(Trial(name, trial, first_ms, total_ms, rss_mib))
-    assert reference is not None
-    Path('results/output.csv').write_bytes(reference)
     rows = ['candidate,trial,first_ms,total_ms,peak_rss_mib']
     rows.extend(f'{t.candidate},{t.trial},{t.first_ms:.6f},{t.total_ms:.6f},{t.rss_mib:.6f}' for t in trials)
     Path('results/trials.csv').write_text('\n'.join(rows) + '\n')
