@@ -1,0 +1,12 @@
+=== Recommendation CLI Health Diagnostics ===
+Runtime Mode: cli
+Current Time: <instant>
+
+[Database status]
+  Status: OK (Connected)
+  SQLite DB URL: jdbc:sqlite:fixture.db
+  Token records in DB: 0
+
+[MyAnimeList Authorization status]
+  Token status: MISSING (Please run 'login' to authenticate)
+=============================================

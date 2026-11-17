@@ -1,0 +1,166 @@
+[
+  {
+    "id": 1,
+    "title": "Watched First",
+    "mean": 8,
+    "popularity": 300,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 3
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": [
+      {
+        "node": {
+          "id": 10
+        },
+        "num_recommendations": 4
+      },
+      {
+        "node": {
+          "id": 20
+        },
+        "num_recommendations": 2
+      },
+      {
+        "node": {
+          "id": 30
+        },
+        "num_recommendations": 9
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Watched Second",
+    "mean": 9,
+    "popularity": 100,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 3
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": [
+      {
+        "node": {
+          "id": 11
+        },
+        "num_recommendations": 3
+      },
+      {
+        "node": {
+          "id": 20
+        },
+        "num_recommendations": 1
+      },
+      {
+        "node": {
+          "id": 1
+        },
+        "num_recommendations": 10
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Watched Bridge",
+    "mean": 7,
+    "popularity": 50,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 1
+        },
+        "relation_type": "sequel"
+      },
+      {
+        "node": {
+          "id": 2
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": []
+  },
+  {
+    "id": 10,
+    "title": "Candidate First",
+    "mean": 8,
+    "popularity": 400,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 12
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": []
+  },
+  {
+    "id": 11,
+    "title": "Candidate Second",
+    "mean": 9,
+    "popularity": 200,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 12
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": []
+  },
+  {
+    "id": 12,
+    "title": "Candidate Bridge",
+    "mean": 7,
+    "popularity": 10,
+    "start_date": "2020-01-01",
+    "related_anime": [
+      {
+        "node": {
+          "id": 10
+        },
+        "relation_type": "sequel"
+      },
+      {
+        "node": {
+          "id": 11
+        },
+        "relation_type": "sequel"
+      }
+    ],
+    "recommendations": []
+  },
+  {
+    "id": 20,
+    "title": "Standalone",
+    "mean": 8.5,
+    "popularity": 600,
+    "start_date": "2020-01-01",
+    "related_anime": [],
+    "recommendations": []
+  },
+  {
+    "id": 30,
+    "title": "Dropped",
+    "mean": 9.5,
+    "popularity": 1,
+    "start_date": "2020-01-01",
+    "related_anime": [],
+    "recommendations": []
+  }
+]

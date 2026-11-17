@@ -1,0 +1,10 @@
+=== Recommendation CLI Health Diagnostics ===
+Runtime Mode: cli
+Current Time: <instant>
+
+[Database status]
+  Status: ERROR (fixture database unavailable)
+
+[MyAnimeList Authorization status]
+  Token status: MISSING (Please run 'login' to authenticate)
+=============================================
