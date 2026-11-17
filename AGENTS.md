@@ -5,9 +5,13 @@ This file is addressed to AI coding agents (Copilot, Cursor, Codeium, Claude Cod
 ## Mandatory Project Context Reads
 
 - Before planning or implementing any code change, read all other project-level Markdown files to gather context.
-- At minimum, read `README.md`, `ARCHITECTURE.md`, and `TODO.md` (in addition to this `AGENTS.md`) at the start of a task.
-- Additional reference files: `REFACTORING.md` (code quality audit), `docs/recommendation_expansion_research.md` (feature ideas).
+- At minimum, read `README.md`, `docs/ARCHITECTURE.md`, and `docs/TODO.md` (in addition to this `AGENTS.md`) at the start of a task.
+- Additional reference files: `docs/REFACTORING.md` (historical code quality audit), `docs/recommendation_expansion_research.md` (feature ideas).
 - If additional `.md` files are added later, read those too before making changes.
+
+## Documentation Precedence
+
+Read [current state](docs/CURRENT_STATE.md) and [CLI compatibility policy](docs/CLI_COMPATIBILITY.md). These instructions and explicit current invariants take precedence over historical plans, walkthroughs, audits, and unapproved proposals. Source/tests/task configuration establish shipped behavior; report implementation gaps instead of treating a desired invariant as verified behavior. Research does not approve HTTP APIs, datastore replacements, weighted franchise averaging, or provider integrations.
 
 ## Build Environment
 
@@ -60,6 +64,7 @@ These are established patterns in the codebase — follow them, don't fight them
 - **Fail-fast (no retry)**: 404, 401, 403 — permanent states.
 - **Retryable**: 429 rate limits, 5xx server errors, network `IOException`.
 - Implemented via `MalRetryInterceptor` (Spring `ClientHttpRequestInterceptor`) on the `apiKeyClient` bean.
+- Service retry loops still exist at the audited baseline; #20 tracks end-to-end enforcement. This classification is the required invariant, not a claim that every call path already obeys it.
 - Configured in `application.properties`: `mal.retry.max-attempts`, `mal.retry.initial-backoff-ms`, `mal.retry.backoff-multiplier`.
 
 ### Caching Strategy

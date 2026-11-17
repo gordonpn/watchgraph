@@ -1,5 +1,7 @@
 # TODO
 
+> **Status:** Roadmap, not approval of every design or proof of runtime behavior. See [current state and precedence](CURRENT_STATE.md); mapped DTO fields do not imply fetched metadata. Preserve SQLite and straight arithmetic franchise averaging until an explicit approved task changes an invariant.
+
 A rough task list for the project, suitable for human or agent-driven implementation.
 
 Scope: Java Spring CLI-focused application.
@@ -38,7 +40,7 @@ Scope: Java Spring CLI-focused application.
 
 - [x] Add popularity/rating signal blending in final score. ✅ (`RankingService` with configurable weights)
 - [x] Add optional metadata-driven filters (year). ✅ (`--minYear` / `--maxYear`)
-- [x] Add temporal decay and freshness boost signals. ✅ (`--decay-months`, `--freshness-boost`)
+- [x] Add temporal decay and freshness boost signals. ✅ (`--decayMonths`, `--freshnessBoost`)
 - [ ] Add genre, studio, media type, and content rating filters. 💡
 - [ ] Evaluate Java-native vector search path (Lucene/OpenSearch/pgvector). 💡
 - [ ] Keep CLI behavior stable while improving ranking internals.
