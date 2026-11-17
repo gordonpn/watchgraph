@@ -10,6 +10,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.HttpStatusCode;
 
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import org.springframework.http.HttpHeaders;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +57,21 @@ public class MalRetryInterceptorTests {
         byte[] body = new byte[0];
 
         when(mockResponse.getStatusCode()).thenReturn(HttpStatusCode.valueOf(200));
+        when(mockResponse.getStatusText()).thenReturn("OK");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Test", "retained");
+        when(mockResponse.getHeaders()).thenReturn(headers);
+        when(mockResponse.getBody()).thenReturn(new ByteArrayInputStream("payload".getBytes()));
         when(execution.execute(request, body)).thenReturn(mockResponse);
 
         ClientHttpResponse result = interceptor.intercept(request, body, execution);
 
-        assertSame(mockResponse, result);
+        assertEquals(mockResponse.getStatusCode(), result.getStatusCode());
         verify(execution, times(1)).execute(request, body);
+        assertEquals("OK", result.getStatusText());
+        assertEquals("retained", result.getHeaders().getFirst("X-Test"));
+        assertEquals("payload", new String(result.getBody().readAllBytes()));
+        verify(mockResponse).close();
         assertEquals(0, sleepCallCount);
     }
 
@@ -89,6 +100,8 @@ public class MalRetryInterceptorTests {
 
         ClientHttpResponse successResponse = mock(ClientHttpResponse.class);
         when(successResponse.getStatusCode()).thenReturn(HttpStatusCode.valueOf(200));
+        when(successResponse.getHeaders()).thenReturn(new HttpHeaders());
+        when(successResponse.getBody()).thenReturn(new ByteArrayInputStream(new byte[0]));
 
         when(execution.execute(request, body))
                 .thenReturn(transientResponse)
@@ -96,7 +109,8 @@ public class MalRetryInterceptorTests {
 
         ClientHttpResponse result = interceptor.intercept(request, body, execution);
 
-        assertSame(successResponse, result);
+        assertEquals(successResponse.getStatusCode(), result.getStatusCode());
+        verify(successResponse).close();
         verify(execution, times(2)).execute(request, body);
         verify(transientResponse, times(1)).close();
         assertEquals(1, sleepCallCount);

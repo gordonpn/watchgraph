@@ -78,7 +78,7 @@ The `seasonal` command scans past years of MAL seasonal data, builds a franchise
 - Anime details: 7-day TTL
 - **Fail-safe fallback**: expired cache is returned when the API is unreachable
 
-**API retry**: Configurable exponential backoff via `MalRetryInterceptor`. Permanent errors (401, 403, 404) fail fast; transient errors (429, 5xx, network drops) are retried.
+**API retry**: `MalRetryInterceptor` alone applies configurable exponential backoff (capped at 15 seconds). Permanent errors (401, 403, 404) make one HTTP attempt; 404 becomes `MalResourceNotFoundException`. Transient errors (429, all 5xx, network `IOException`, including response-body reads) use the configured total attempt limit once; a nonpositive limit retries until interrupted. Interruption preserves the interrupt flag and stops further requests. Usable expired cache can satisfy exhausted transient failures; permanent errors, interruption, malformed/HTML/null payloads abort without stale fallback. Recommendation generation propagates these failures rather than silently dropping candidates.
 
 ## Prerequisites
 
