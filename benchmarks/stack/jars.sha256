@@ -1,0 +1,8 @@
+ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478  .tools/jars/annotations-13.0.jar
+976f989d0b5f5d80e8e8a8ad4b73da0bfc27fdd965b9fa38362b2be79ecc1337  .tools/jars/kotlin-compiler-embeddable-2.3.20.jar
+8870bab840b8087c96c4ddc06088b4aedf5131c408af3674306304f1f96af3f4  .tools/jars/kotlin-daemon-embeddable-2.3.20.jar
+3277ac102ae17aad10a55abec75ff5696c8d109790396434b496e75087854203  .tools/jars/kotlin-reflect-1.6.10.jar
+6fcdb7da6e65cf8cc43e5aabab94bdcc48825e7933686f8a1bf694eb88f8e00e  .tools/jars/kotlin-script-runtime-2.3.20.jar
+0ae12504a5040ebaf37703908483420d1a5624dd1d93f357665f8c77c848a01e  .tools/jars/kotlin-stdlib-2.3.20.jar
+9860906a1937490bf5f3b06d2f0e10ef451e65b95b269f22daf68a3d1f5065c5  .tools/jars/kotlinx-coroutines-core-jvm-1.8.0.jar
+f86e30fffd10d2b13b8caa8d4b237a7ee61f2ffccf5b1941de718b765d235bf8  .tools/jars/picocli-4.7.7.jar
