@@ -2,6 +2,7 @@ package com.gordonpn.anime.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gordonpn.anime.entity.GenericCacheEntity;
+import com.gordonpn.anime.entity.AnimeCacheEntity;
 import com.gordonpn.anime.models.AnimeDetails;
 import com.gordonpn.anime.models.SeasonalAnime;
 import com.gordonpn.anime.repository.AnimeCacheRepository;
@@ -19,6 +20,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -50,6 +54,26 @@ public class AnimeServiceTests {
     @BeforeEach
     public void setUp() {
         animeService = new AnimeService(objectMapper, apiKeyClient, animeCacheRepository, genericCacheRepository, 3, 50, 1.5);
+    }
+
+    @Test
+    public void rejectsNonpositiveAnimeIdsBeforeCacheOrHttp() {
+        for (int id : new int[]{0, -1, Integer.MIN_VALUE}) {
+            var error = assertThrows(IllegalArgumentException.class,
+                    () -> animeService.getAnimeById(id));
+            assertTrue(error.getMessage().contains("animeId"));
+        }
+        verifyNoInteractions(animeCacheRepository, genericCacheRepository, apiKeyClient);
+    }
+
+    @Test
+    public void acceptsSmallestPositiveAnimeId() {
+        var cached = new AnimeCacheEntity();
+        cached.setCachedAt(LocalDateTime.now());
+        cached.setDetailsJson("{\"id\":1,\"title\":\"First Anime\"}");
+        when(animeCacheRepository.findById(1)).thenReturn(Optional.of(cached));
+        assertEquals(1, animeService.getAnimeById(1).getId());
+        verifyNoInteractions(apiKeyClient);
     }
 
     @Test

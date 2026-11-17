@@ -52,6 +52,9 @@ public class AnimeService {
     }
 
     public AnimeDetails getAnimeById(int animeId) {
+        if (animeId <= 0) {
+            throw new IllegalArgumentException("animeId must be positive");
+        }
         Optional<AnimeCacheEntity> cachedOpt = animeCacheRepository.findById(animeId);
         if (cachedOpt.isPresent()) {
             AnimeCacheEntity cached = cachedOpt.get();

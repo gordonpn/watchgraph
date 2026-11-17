@@ -65,6 +65,10 @@ public class BackgroundFetchService {
             for (Datum datum : listByUserName.getData()) {
                 log.debug("Processing anime: {}. Status: {}", datum.toString(), listStatusType);
                 Integer animeId = datum.getNode().getId();
+                if (animeId == null || animeId <= 0) {
+                    log.warn("Skipping list entry with invalid anime ID: {}", animeId);
+                    continue;
+                }
                 fetchedAnimeIds.add(animeId);
 
                 UserAnimeListEntity entity = userAnimeListRepository.findByAnimeId(animeId)
