@@ -107,6 +107,9 @@ Additional config in `application.properties`:
 
 ## Run
 
+Packaging uses build-only placeholder credentials for Spring AOT. Running the
+CLI requires your MAL credentials in the environment or a local `.env` file.
+
 **Build and run:**
 ```sh
 ./gradlew clean bootJar && java -jar build/libs/anime-0.0.1-SNAPSHOT.jar
