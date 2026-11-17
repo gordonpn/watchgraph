@@ -25,3 +25,8 @@ The configuration was checked against the
 GitHub performs the actual dependency discovery and creates updates after this
 configuration reaches the default branch; that scheduled service cannot be
 exercised by a local configuration check.
+
+Spring Boot manages both Hibernate core and the SQLite community dialect through
+its dependency BOM. Keep the dialect declaration unversioned so it follows the
+core version when Spring Boot changes. Hibernate ORM major upgrades require
+checking compatibility across the Spring and Jakarta Persistence stack.
