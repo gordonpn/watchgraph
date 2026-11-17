@@ -39,7 +39,7 @@ jobs:
       - name: DeepSeek Code Review
         if: env.DEEPSEEK_API_KEY != ''
         continue-on-error: true
-        uses: hustcer/deepseek-review@eccde2e9781008d795e366b951e313e37af88dd5 # v1
+        uses: hustcer/deepseek-review@15a228bf15e01ef1f4d195eab4febbd7809dd2ed # v1
         with:
           chat-token: ${{ env.DEEPSEEK_API_KEY }}
           model: deepseek-chat
