@@ -25,10 +25,16 @@ public class ListCommands {
         return listByUserName;
     }
 
-    @ShellMethod(key = "sync", value = "Synchronize completed and dropped anime lists from MyAnimeList to the local SQLite database.")
+    @ShellMethod(key = "sync", value = "Force synchronization of all anime lists from MyAnimeList to the local SQLite database.")
     public String sync() {
         log.info("Triggering list synchronization");
-        backgroundFetchService.fetchList();
+        var result = backgroundFetchService.forceFetchList();
+        if (!result.skippedStatuses().isEmpty()) {
+            String skipped = result.skippedStatuses().stream()
+                    .map(Status::getType)
+                    .collect(java.util.stream.Collectors.joining(", "));
+            return "List sync incomplete. Statuses not refreshed: " + skipped + ". Local snapshots were retained.";
+        }
         return "List sync completed successfully!";
     }
 }

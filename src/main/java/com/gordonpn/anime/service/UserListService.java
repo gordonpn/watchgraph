@@ -49,8 +49,14 @@ public class UserListService {
     }
 
     public AnimeList getListByUserName(String userName, Status status) {
+        return getListByUserName(userName, status, false);
+    }
+
+    /** A synchronization must observe the provider, never a cached or fallback snapshot. */
+    public AnimeList getListByUserName(String userName, Status status, boolean forceRefresh) {
         String cacheKey = "userlist:" + userName + ":" + status.getType();
-        Optional<GenericCacheEntity> cachedOpt = genericCacheRepository.findById(cacheKey);
+        Optional<GenericCacheEntity> cachedOpt = forceRefresh
+                ? Optional.empty() : genericCacheRepository.findById(cacheKey);
 
         if (cachedOpt.isPresent()) {
             GenericCacheEntity cached = cachedOpt.get();

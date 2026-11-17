@@ -99,4 +99,13 @@ public class UserListServiceTests {
         assertNotNull(result);
         assertNotNull(result.getData()); // should fallback to the expired cache content
     }
+    @Test
+    void synchronizationBypassesFreshCacheAndDoesNotFallbackAfterFailure() {
+        when(apiKeyClient.get()).thenThrow(new IllegalStateException("offline"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                () -> userListService.getListByUserName("@me", Status.COMPLETED, true));
+        verify(apiKeyClient, atLeastOnce()).get();
+        verify(genericCacheRepository, never()).findById(any());
+        verify(genericCacheRepository, never()).save(any());
+    }
 }
