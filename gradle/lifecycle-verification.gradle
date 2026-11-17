@@ -1,0 +1,17 @@
+// Package the real CLI without invoking production native/AOT credential validation.
+// The fixture supplies dummy credentials only to its disposable child process.
+// Applied scripts do not inherit the plugin's compilation classpath; reuse its registered task type.
+def bootJarType = tasks.named('bootJar').get().getClass().getSuperclass()
+def lifecycleJar = tasks.register('lifecycleBootJar', bootJarType) {
+    archiveClassifier = 'lifecycle'
+    mainClass = 'com.gordonpn.anime.RecommendationApplication'
+    targetJavaVersion = JavaVersion.toVersion(25)
+    classpath = files(tasks.named('compileJava').flatMap { it.destinationDirectory },
+            tasks.named('processResources').map { it.destinationDir }, configurations.runtimeClasspath)
+    setDependsOn([tasks.named('classes')])
+}
+
+tasks.named('test') {
+    dependsOn lifecycleJar
+    systemProperty 'shutdown.lifecycle.jar', lifecycleJar.get().archiveFile.get().asFile.absolutePath
+}

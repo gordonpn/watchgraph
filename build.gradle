@@ -73,6 +73,8 @@ jacocoTestReport {
     }
 }
 
+apply from: 'gradle/lifecycle-verification.gradle'
+
 tasks.named('bootRun') {
     jvmArgs '--enable-native-access=ALL-UNNAMED'
 }
