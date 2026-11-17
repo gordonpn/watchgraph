@@ -62,9 +62,6 @@ jobs:
           build-mode: manual
 
       - name: Build Java application
-        env:
-          MAL_CLIENT_ID: dummy-client-id
-          MAL_CLIENT_SECRET: dummy-client-secret
         run: task build
 
       - name: Perform CodeQL Analysis

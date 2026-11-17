@@ -76,3 +76,12 @@ jacocoTestReport {
 tasks.named('bootRun') {
     jvmArgs '--enable-native-access=ALL-UNNAMED'
 }
+
+tasks.named('processAot') {
+    // AOT invokes the CLI entry point. Isolate it from the developer's .env.
+    doFirst {
+        workingDir java.nio.file.Files.createDirectories(temporaryDir.toPath()).toFile()
+    }
+    environment 'MAL_CLIENT_ID', 'dummy-client-id'
+    environment 'MAL_CLIENT_SECRET', 'dummy-client-secret'
+}
