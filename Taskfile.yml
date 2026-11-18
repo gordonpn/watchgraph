@@ -22,6 +22,11 @@ tasks:
     cmds:
       - ./gradlew test
 
+  quality:
+    desc: Check Java sources and verify the quality rule fixtures
+    cmds:
+      - ./gradlew quality
+
   test-reviewers:
     desc: Verify the automated reviewer workflows and credential check
     cmds:
