@@ -26,3 +26,10 @@ tasks:
     desc: Check Java sources and verify the quality rule fixtures
     cmds:
       - ./gradlew quality
+
+  test-reviewers:
+    desc: Verify the automated reviewer workflows and credential check
+    cmds:
+      - actionlint .github/workflows/deepseek-review.yml .github/workflows/pr-agent.yml
+      - shellcheck .github/scripts/check-reviewer-credentials.sh .github/scripts/test-reviewer-preflight.sh .github/scripts/fixtures/reviewer-curl.sh
+      - bash .github/scripts/test-reviewer-preflight.sh

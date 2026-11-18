@@ -32,3 +32,10 @@ The CLI also uses a fixture-only `commons-logging:1.4.0` configuration, matching
 The verifier requires a zero exit code and no errors for the clean fixture. For violations it requires a nonzero exit code matching the four findings, and exactly one finding of the expected rule for each expected filename. A missing rule, unexpected parser failure, missing fixture, extra finding or clean-file regression fails the verification task. CLI exit codes are captured solely for these assertions; application/test checks retain Gradle's normal failure behavior.
 
 Expected rejection reports in `build/reports/checkstyle/fixtures/violations.xml` are test evidence, not a production baseline suppression. `quality` includes `checkstyleMain`, `checkstyleTest` and `qualityRulesTest`, so fixture tests cannot replace checking the actual source tree.
+
+## Gradle wrapper integration
+
+The quality gate also runs with the repository's Gradle 9.9.1 wrapper. Fixture
+execution uses `providers.javaexec`, and XML reports use
+`groovy.xml.XmlSlurper` to match Gradle's bundled Groovy. Both clean and
+violating fixture assertions remain enforced.

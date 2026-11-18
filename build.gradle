@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.15'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.graalvm.buildtools.native' version '0.10.3'
+    id 'org.graalvm.buildtools.native' version '1.1.18'
     id 'jacoco'
     id 'checkstyle'
 }
@@ -41,7 +41,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.xerial:sqlite-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.hibernate.orm:hibernate-community-dialects:6.5.3.Final'
+    implementation 'org.hibernate.orm:hibernate-community-dialects'
 
     compileOnly 'org.projectlombok:lombok:1.18.46'
 
@@ -125,7 +125,7 @@ tasks.register('qualityRulesTest') {
         ['clean', 'violations'].each { fixture ->
             def report = new File(reportsDir, "${fixture}.xml")
             report.delete() // Never accept a stale report if the CLI fails before writing one.
-            def result = javaexec {
+            def result = providers.javaexec {
                 executable = qualityLauncher.get().executablePath.asFile.absolutePath
                 classpath = files(configurations.checkstyle, configurations.qualityCliLogging)
                 mainClass = 'com.puppycrawl.tools.checkstyle.Main'
@@ -133,7 +133,8 @@ tasks.register('qualityRulesTest') {
                         file("config/checkstyle/fixtures/${fixture}").absolutePath
                 ignoreExitValue = true // Exit codes are the behavior under test, never ignored below.
             }
-            def parsed = new XmlSlurper().parse(report)
+            result = result.result.get()
+            def parsed = new groovy.xml.XmlSlurper().parse(report)
             def errors = parsed.file.error
             if (fixture == 'clean') {
                 if (result.exitValue != 0 || !errors.isEmpty()
@@ -163,4 +164,13 @@ tasks.register('quality') {
 
 tasks.named('check') {
     dependsOn 'qualityRulesTest'
+}
+
+tasks.named('processAot') {
+    // AOT invokes the CLI entry point. Isolate it from the developer's .env.
+    doFirst {
+        workingDir java.nio.file.Files.createDirectories(temporaryDir.toPath()).toFile()
+    }
+    environment 'MAL_CLIENT_ID', 'dummy-client-id'
+    environment 'MAL_CLIENT_SECRET', 'dummy-client-secret'
 }
